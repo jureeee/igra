@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Neuroevolucija — podvodna petrijevka</title>
+<title>Neuroevolucija — podvodni ekosistem</title>
 </head>
 <body>
 <!--ARTIFACT-START-->
@@ -18,65 +18,95 @@
   body{background:radial-gradient(135% 105% at 50% -12%,#0d2f42 0%,#04101b 55%,#02080f 100%);
        color:var(--ink);-webkit-font-smoothing:antialiased;
        font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
-  .wrap{display:flex;flex-wrap:wrap;gap:16px;padding:16px;align-items:flex-start;
-        max-width:1340px;margin:0 auto;}
-  .stage{flex:1 1 620px;min-width:300px;}
-  h1{font-size:19px;font-weight:600;margin:0 0 5px;letter-spacing:-.01em}
-  .sub{color:var(--muted);font-size:12.5px;margin:0 0 12px;line-height:1.55;max-width:62ch}
-  #glbox{position:relative;overflow:hidden;border-radius:20px;background:#02060e;
-         box-shadow:0 22px 64px rgba(0,0,0,.55), inset 0 0 60px rgba(0,40,60,.45);}
-  canvas#gl{display:block;width:100%;height:auto;cursor:grab}
+  body{overflow:hidden}
+  #glbox{position:fixed;inset:0;z-index:1;overflow:hidden;background:#02060e}
+  canvas#gl{display:block;width:100%;height:100%;cursor:grab}
   canvas#gl:active{cursor:grabbing}
+  #titlechip{position:fixed;top:16px;left:16px;z-index:15;display:flex;align-items:center;gap:8px;
+    font-size:14px;font-weight:600;padding:9px 14px;border-radius:14px;color:var(--ink);
+    background:var(--glass);border:1px solid var(--brd);
+    backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);
+    box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  #menuBtn{position:fixed;top:16px;right:16px;z-index:22;width:46px;height:46px;border-radius:15px;
+    display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;color:var(--ink);
+    background:var(--glass);border:1px solid var(--brd);
+    backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);
+    box-shadow:0 10px 30px rgba(0,0,0,.35);transition:background .18s,transform .1s}
+  #menuBtn:hover{background:rgba(255,255,255,.14)} #menuBtn:active{transform:scale(.95)}
+  #menuBtn.on{color:var(--accent);border-color:var(--accent)}
+  #drawer{position:fixed;top:0;right:0;height:100%;width:368px;max-width:90vw;z-index:21;
+    padding:16px 16px 44px;overflow-y:auto;transform:translateX(107%);
+    transition:transform .34s cubic-bezier(.4,0,.2,1);
+    background:rgba(9,20,31,.72);border-left:1px solid var(--brd);
+    backdrop-filter:blur(30px) saturate(1.6);-webkit-backdrop-filter:blur(30px) saturate(1.6);
+    box-shadow:-20px 0 60px rgba(0,0,0,.5)}
+  #drawer.open{transform:none}
+  .dhead{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+  .dhead .dt{font-size:16px;font-weight:600;flex:1;letter-spacing:-.01em}
+  .dhead .dx{cursor:pointer;color:var(--muted);width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px}
+  .dhead .dx:hover{background:rgba(255,255,255,.12);color:var(--ink)}
+  details.sec2{border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.035);margin-bottom:10px;overflow:hidden}
+  details.sec2>summary{list-style:none;cursor:pointer;padding:12px 14px;font-size:11px;text-transform:uppercase;
+    letter-spacing:.13em;color:var(--muted);font-weight:600;display:flex;align-items:center;justify-content:space-between;user-select:none}
+  details.sec2>summary::-webkit-details-marker{display:none}
+  details.sec2>summary::after{content:'⌄';font-size:15px;transition:transform .2s;opacity:.65}
+  details.sec2[open]>summary{color:var(--ink)}
+  details.sec2[open]>summary::after{transform:rotate(180deg)}
+  .secbody{padding:2px 14px 14px}
   .overlay{position:absolute;left:14px;bottom:12px;font-size:11px;color:#bfe0f0;
            background:rgba(6,16,26,.42);padding:5px 10px;border-radius:10px;pointer-events:none;
            border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(10px) saturate(1.4);
            -webkit-backdrop-filter:blur(10px) saturate(1.4)}
-  .panel{flex:0 0 316px;min-width:292px;padding:16px;border-radius:20px;
+  #toast{position:absolute;top:14px;left:50%;transform:translateX(-50%) translateY(-10px);opacity:0;
+         background:rgba(10,24,36,.62);border:1px solid rgba(255,255,255,.18);
+         backdrop-filter:blur(18px) saturate(1.6);-webkit-backdrop-filter:blur(18px) saturate(1.6);
+         padding:9px 16px;border-radius:15px;font-size:13.5px;font-weight:600;pointer-events:none;
+         transition:opacity .35s,transform .35s;white-space:nowrap;z-index:7;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  #toast.show{opacity:1;transform:translateX(-50%)}
+  .panel{flex:0 0 320px;min-width:296px;padding:16px;border-radius:20px;
          background:var(--glass);border:1px solid var(--brd);
          backdrop-filter:blur(26px) saturate(1.6);-webkit-backdrop-filter:blur(26px) saturate(1.6);
          box-shadow:0 22px 64px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.12);}
-  .panel h2{font-size:11px;text-transform:uppercase;letter-spacing:.14em;
-            color:var(--muted);margin:2px 0 10px;font-weight:600}
+  .panel h2{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);margin:2px 0 10px;font-weight:600}
   .row{display:flex;gap:9px;margin-bottom:12px}
   .btn{flex:1;background:rgba(255,255,255,.07);color:var(--ink);border:1px solid var(--brd);
        border-radius:12px;padding:9px;font-size:13px;font-weight:500;cursor:pointer;
        transition:background .18s,transform .1s;font-family:inherit}
-  .btn:hover{background:rgba(255,255,255,.13)}
-  .btn:active{transform:scale(.98)}
-  .seg{display:flex;background:rgba(255,255,255,.06);border:1px solid var(--brd);
-       border-radius:12px;padding:3px;gap:3px;margin-bottom:6px}
-  .seg button{flex:1;border:none;background:transparent;color:var(--muted);border-radius:9px;
-       padding:7px 0;font-size:13px;font-weight:500;cursor:pointer;transition:.18s;font-family:inherit}
+  .btn:hover{background:rgba(255,255,255,.13)} .btn:active{transform:scale(.98)}
+  .btn.kick{background:linear-gradient(180deg,rgba(255,140,90,.28),rgba(255,90,140,.22));border-color:rgba(255,150,120,.4)}
+  .btn.kick:hover{background:linear-gradient(180deg,rgba(255,140,90,.4),rgba(255,90,140,.32))}
+  .seg{display:flex;background:rgba(255,255,255,.06);border:1px solid var(--brd);border-radius:12px;padding:3px;gap:3px;margin-bottom:6px}
+  .seg button{flex:1;border:none;background:transparent;color:var(--muted);border-radius:9px;padding:7px 0;font-size:13px;font-weight:500;cursor:pointer;transition:.18s;font-family:inherit}
   .seg button.on{background:rgba(255,255,255,.15);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.3)}
   label.ctrl{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin:13px 0 6px}
   label.ctrl b{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600}
-  input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;
-       background:rgba(255,255,255,.16);cursor:pointer}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
-       background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.45)}
+  input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:rgba(255,255,255,.16);cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.45)}
   input[type=range]::-moz-range-thumb{width:18px;height:18px;border:none;border-radius:50%;background:#fff}
   .switch{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:13.5px;cursor:pointer}
   .switch>span:first-child{flex:1}
   .switch input{display:none}
-  .track{width:44px;height:26px;border-radius:13px;background:rgba(255,255,255,.16);position:relative;
-         transition:.22s;flex:none}
-  .knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;
-        transition:.22s cubic-bezier(.4,1.3,.5,1);box-shadow:0 1px 4px rgba(0,0,0,.4)}
+  .track{width:44px;height:26px;border-radius:13px;background:rgba(255,255,255,.16);position:relative;transition:.22s;flex:none}
+  .knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.22s cubic-bezier(.4,1.3,.5,1);box-shadow:0 1px 4px rgba(0,0,0,.4)}
   .switch input:checked + .track{background:var(--accent)}
   .switch input:checked + .track .knob{transform:translateX(18px)}
   .stats{display:grid;grid-template-columns:1fr auto;gap:6px 10px;font-size:13px;margin:2px 0}
-  .stats .k{color:var(--muted)}
-  .stats .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
-  canvas.mini{width:100%;height:auto;border-radius:12px;background:rgba(255,255,255,.04);
-        border:1px solid var(--line);margin-top:8px;display:block}
+  .stats .k{color:var(--muted)} .stats .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+  .roleGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:2px}
+  .rc{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);padding:6px 9px;border-radius:10px;font-size:12.5px}
+  .rc .rn{color:var(--muted);flex:1} .rc b{font-variant-numeric:tabular-nums}
+  canvas.mini{width:100%;height:auto;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line);margin-top:8px;display:block}
   .cap{font-size:11px;color:var(--muted);margin:6px 0 0;line-height:1.5}
   .divider{height:1px;background:var(--line);margin:15px 0}
-  code{background:rgba(255,255,255,.08);padding:1px 5px;border-radius:5px;color:var(--accent);font-size:12px}
   .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:8px}
   .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
-  /* lebdeči vpogled (glass card nad bitjem) */
-  #pop{position:absolute;width:266px;max-width:calc(100% - 24px);z-index:6;opacity:0;
-       transform:translateY(8px) scale(.98);transition:opacity .18s,transform .18s;pointer-events:none;top:0;left:0}
+  .chron{display:flex;flex-direction:column;gap:5px;max-height:184px;overflow-y:auto}
+  .ev{display:flex;gap:8px;font-size:12px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:10px;padding:6px 9px}
+  .ev .t{color:var(--muted);font-variant-numeric:tabular-nums;flex:none;width:36px}
+  .ev.big{background:rgba(255,120,150,.12);border-color:rgba(255,120,150,.3)}
+  .empty{color:var(--muted);font-size:12.5px;padding:6px 0;line-height:1.5}
+  /* lebdeči vpogled */
+  #pop{position:absolute;width:270px;max-width:calc(100% - 24px);z-index:6;opacity:0;transform:translateY(8px) scale(.98);transition:opacity .18s,transform .18s;pointer-events:none;top:0;left:0}
   #pop.show{opacity:1;transform:none;pointer-events:auto}
   .card{background:rgba(12,27,41,.5);border:1px solid rgba(255,255,255,.16);border-radius:22px;
         backdrop-filter:blur(28px) saturate(1.7);-webkit-backdrop-filter:blur(28px) saturate(1.7);
@@ -84,47 +114,46 @@
   .card .top{display:flex;align-items:center;gap:9px}
   .swatch{width:13px;height:13px;border-radius:50%;flex:none;box-shadow:0 0 12px currentColor}
   .card .name{font-weight:600;font-size:14px;letter-spacing:-.01em}
-  .card .x{margin-left:auto;cursor:pointer;color:var(--muted);font-size:17px;line-height:1;
-           width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+  .card .x{margin-left:auto;cursor:pointer;color:var(--muted);font-size:17px;line-height:1;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:8px}
   .card .x:hover{background:rgba(255,255,255,.13);color:var(--ink)}
-  .chips{display:flex;flex-wrap:wrap;gap:5px;margin:9px 0 4px}
+  .rolePill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:10px;margin:9px 0 2px}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 2px}
   .chip{font-size:11px;color:var(--muted);background:rgba(255,255,255,.07);padding:3px 8px;border-radius:8px}
   .chip b{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600}
-  .sec{font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);
-       margin:12px 0 7px;display:flex;align-items:center;gap:6px}
+  .sec{font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);margin:12px 0 7px;display:flex;align-items:center;gap:6px}
   .sec .hdr3{margin-left:auto;display:flex;gap:5px}
   .sec .hdr3 span{width:22px;text-align:center;font-size:9px}
   .brow{display:flex;align-items:center;gap:9px;margin:6px 0;font-size:12px}
-  .brow .bl{width:80px;color:var(--muted);flex:none}
+  .brow .bl{width:82px;color:var(--muted);flex:none}
   .cells{margin-left:auto;display:flex;gap:5px}
   .cell{width:22px;height:15px;border-radius:5px;background:rgba(255,255,255,.07);position:relative;overflow:hidden}
   .cell i{position:absolute;inset:0;opacity:var(--o,0);background:var(--cc,#38e1c8);transition:opacity .12s}
   .bar{flex:1;height:7px;border-radius:4px;background:rgba(255,255,255,.09);position:relative;overflow:hidden}
-  .bar i{position:absolute;top:0;bottom:0;left:0;width:var(--w,0%);background:var(--cc,#38e1c8);
-         border-radius:4px;transition:width .12s,left .12s}
-  .val{width:40px;text-align:right;font-variant-numeric:tabular-nums;font-size:11px;color:var(--ink);flex:none}
-  .empty{color:var(--muted);font-size:12.5px;padding:6px 0;line-height:1.5}
+  .bar i{position:absolute;top:0;bottom:0;left:0;width:var(--w,0%);background:var(--cc,#38e1c8);border-radius:4px;transition:width .12s,left .12s}
+  .val{width:44px;text-align:right;font-variant-numeric:tabular-nums;font-size:11px;color:var(--ink);flex:none}
 </style>
 
-<div class="wrap">
-  <div class="stage">
-    <h1>🌊 Neuroevolucija — podvodna petrijevka</h1>
-    <p class="sub">Bioluminescentna bitja z evolvirajočimi nevronskimi možgani. Nihče jih
-       ne uči — kdor najde hrano in preživi, se razmnoži z mutacijo. Zdaj lahko tudi
-       <b>oddajajo svetlobne signale</b> in se nanje odzivajo. Vleci za obračanje kamere,
-       kolešček za zoom, klikni bitje za vpogled v njegove možgane.</p>
-    <div id="glbox">
-      <canvas id="gl"></canvas>
-      <div class="overlay" id="ov">vrti se…</div>
-      <div id="pop"><div class="card" id="card"></div></div>
-    </div>
-  </div>
+<div id="glbox">
+  <canvas id="gl"></canvas>
+  <div class="overlay" id="ov">nalagam…</div>
+  <div id="toast"></div>
+  <div id="pop"><div class="card" id="card"></div></div>
+</div>
 
-  <div class="panel glass">
-    <h2>Nadzor</h2>
+<div id="titlechip">🌊 <span>Podvodni ekosistem</span></div>
+<div id="menuBtn" title="Meni">☰</div>
+
+<div id="drawer">
+  <div class="dhead"><span class="dt">Nadzor &amp; meritve</span><span class="dx" id="drawerClose">✕</span></div>
+
+  <details class="sec2" open><summary>Nadzor</summary><div class="secbody">
     <div class="row">
       <button id="btnPause" class="btn">⏸ Pavza</button>
       <button id="btnReset" class="btn">↻ Ponastavi</button>
+    </div>
+    <div class="row">
+      <button id="btnMeteor" class="btn kick">☄️ Meteor</button>
+      <button id="btnBloom" class="btn kick">🌸 Cvetenje</button>
     </div>
     <div class="seg" id="segSpeed">
       <button data-speed="1" class="on">1×</button>
@@ -132,50 +161,47 @@
       <button data-speed="4">4×</button>
       <button data-speed="8">8×</button>
     </div>
-    <label class="ctrl">Stopnja mutacije <b id="mrv">0.10</b></label>
-    <input type="range" id="mr" min="0" max="0.6" step="0.01" value="0.10">
-    <label class="ctrl">Obilje hrane <b id="frv">70</b>/s</label>
-    <input type="range" id="fr" min="0" max="200" step="5" value="70">
+    <label class="ctrl">Stopnja mutacije <b id="mrv">0.12</b></label>
+    <input type="range" id="mr" min="0" max="0.6" step="0.01" value="0.12">
+    <label class="ctrl">Obilje hrane <b id="frv">55</b>/s</label>
+    <input type="range" id="fr" min="0" max="200" step="5" value="55">
     <label class="switch"><span>🦈 Predacija</span>
       <input type="checkbox" id="tPred" checked><span class="track"><span class="knob"></span></span></label>
-    <label class="switch"><span>🌱 Obnavljanje</span>
-      <input type="checkbox" id="tRepl" checked><span class="track"><span class="knob"></span></span></label>
+    <label class="switch"><span>☄️ Naravne katastrofe</span>
+      <input type="checkbox" id="tEvents" checked><span class="track"><span class="knob"></span></span></label>
+  </div></details>
 
-    <div class="divider"></div>
-    <h2>Meritve</h2>
+  <details class="sec2" open><summary>Prebivalstvo po vlogah</summary><div class="secbody">
+    <div class="roleGrid" id="roleGrid"></div>
+  </div></details>
+
+  <details class="sec2" open><summary>📜 Kronika razvoja</summary><div class="secbody">
+    <div class="chron" id="chron"><div class="empty">Opazujem … prvi dogodki kmalu.</div></div>
+  </div></details>
+
+  <details class="sec2"><summary>Meritve</summary><div class="secbody">
     <div class="stats">
       <div class="k">Čas</div><div class="v" id="sTime">0s</div>
       <div class="k">Populacija</div><div class="v" id="sPop">0</div>
-      <div class="k">Hrana</div><div class="v" id="sFood">0</div>
       <div class="k">Rodovi (globina)</div><div class="v" id="sGen">0</div>
-      <div class="k">Povpr. velikost</div><div class="v" id="sSize">0</div>
       <div class="k">Genetska raznolikost</div><div class="v" id="sDiv">0</div>
-      <div class="k">Jakost možganov</div><div class="v" id="sCplx">0</div>
       <div class="k">FPS</div><div class="v" id="sFps">0</div>
     </div>
-    <canvas id="graph" class="mini" width="280" height="80"></canvas>
+    <canvas id="graph" class="mini" width="288" height="76"></canvas>
     <div class="legend">
       <span><span class="dot" style="background:#38e1c8"></span>populacija</span>
       <span><span class="dot" style="background:#ff77c8"></span>raznolikost</span>
-      <span><span class="dot" style="background:#3a6b55"></span>hrana</span>
+      <span><span class="dot" style="background:#6affc0"></span>hrana</span>
     </div>
+  </div></details>
 
-    <div class="divider"></div>
-    <h2>Linije skozi čas (Mullerjev graf)</h2>
-    <canvas id="muller" class="mini" width="280" height="90"></canvas>
-    <p class="cap">Vsaka barva je rodovna linija. Debelina = delež populacije.
-       Vidiš vzpone, izumrtja in speciacije.</p>
-
-    <div class="divider"></div>
-    <h2>Nišna karta</h2>
-    <canvas id="niche" class="mini" width="280" height="120"></canvas>
-    <p class="cap">Vodoravno = velikost telesa, navpično = barvna linija.
-       Svetlejše = več bitij v tej niši.</p>
-
-    <div class="divider"></div>
-    <p class="cap">💡 <b style="color:var(--ink)">Klikni bitje</b> v prizoru — nad njim
-       se odpre lebdeča kartica, ki v živo pokaže, <i>kaj čuti</i> in <i>kako se odloči</i>.</p>
-  </div>
+  <details class="sec2"><summary>Grafi razvoja</summary><div class="secbody">
+    <p class="cap" style="margin-bottom:6px">Linije skozi čas (Mullerjev graf):</p>
+    <canvas id="muller" class="mini" width="288" height="84"></canvas>
+    <p class="cap" style="margin-top:12px">Nišni prostor — vodoravno prehrana (rastlinojed → plenilec),
+       navpično velikost; vsaka pika je bitje, obarvano po vlogi:</p>
+    <canvas id="niche" class="mini" width="288" height="120"></canvas>
+  </div></details>
 </div>
 
 <script src="three.min.js"></script>
@@ -183,750 +209,464 @@
 /*ENGINE-START*/
 (function (global) {
   'use strict';
+  function makeRNG(seed){ let s=seed>>>0; return function(){ s=(s+0x6D2B79F5)|0;
+    let t=Math.imul(s^(s>>>15),1|s); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
+  function clamp(x,a,b){ return x<a?a:(x>b?b:x); }
+  function gauss(rng){ let u=0,v=0; while(u===0)u=rng(); while(v===0)v=rng(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+  function normAngle(a){ while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; return a; }
 
-  /* ---------- pomožne ---------- */
-  function makeRNG(seed) {
-    let s = seed >>> 0;
-    return function () {
-      s = (s + 0x6D2B79F5) | 0;
-      let t = Math.imul(s ^ (s >>> 15), 1 | s);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-  function clamp(x, a, b) { return x < a ? a : (x > b ? b : x); }
-  function gauss(rng) {
-    let u = 0, v = 0;
-    while (u === 0) u = rng();
-    while (v === 0) v = rng();
-    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-  }
-  function normAngle(a) {
-    while (a > Math.PI) a -= 2 * Math.PI;
-    while (a < -Math.PI) a += 2 * Math.PI;
-    return a;
+  /* ----- možgani: 15 -> 12 -> 3 ----- */
+  const N_IN=15,N_HID=12,N_OUT=3;
+  const OFF_B1=N_IN*N_HID, OFF_W2=OFF_B1+N_HID, OFF_B2=OFF_W2+N_HID*N_OUT, GENOME_LEN=OFF_B2+N_OUT;
+  function randomGenome(rng){ const g=new Float32Array(GENOME_LEN); for(let i=0;i<GENOME_LEN;i++)g[i]=gauss(rng)*0.8; return g; }
+  function mutateGenome(g,rng,rate,size){ const c=new Float32Array(g); for(let i=0;i<c.length;i++) if(rng()<rate)c[i]+=gauss(rng)*size; return c; }
+  const _hid=new Float32Array(N_HID),_out=new Float32Array(N_OUT);
+  function think(g,inp,out,hid){
+    for(let j=0;j<N_HID;j++){ let s=g[OFF_B1+j]; const b=j*N_IN; for(let i=0;i<N_IN;i++)s+=g[b+i]*inp[i]; hid[j]=Math.tanh(s); }
+    for(let k=0;k<N_OUT;k++){ let s=g[OFF_B2+k]; const b=OFF_W2+k*N_HID; for(let j=0;j<N_HID;j++)s+=g[b+j]*hid[j]; out[k]=s; }
   }
 
-  /* ---------- nevronska mreža (genom) ----------
-     vhodi(15): hrana LCR | sosed LCR | rel.velikost LCR | signal LCR | energija | velikost | oscilator
-     izhodi(3): zavij | pospeši | oddaj signal                                             */
-  const N_IN = 15, N_HID = 12, N_OUT = 3;
-  const OFF_B1 = N_IN * N_HID;
-  const OFF_W2 = OFF_B1 + N_HID;
-  const OFF_B2 = OFF_W2 + N_HID * N_OUT;
-  const GENOME_LEN = OFF_B2 + N_OUT;
+  /* ----- vloge iz genov telesa ----- */
+  // 0 rastlinojed, 1 plenilec, 2 oklepnik, 3 avtotrof
+  function roleOf(a){
+    if(a.photo>0.5 && a.photo>=a.diet && a.photo>=a.defense) return 3;
+    if(a.diet>0.5) return 1;
+    if(a.defense>0.5) return 2;
+    return 0;
+  }
+  function radiusOf(s){ return 3+s*3.4; }
+  function visionOf(s){ return 55+s*34; }
+  function maxSpeedOf(a){ return 105/(0.6+a.size*0.55) * (1-0.45*a.photo) * (1-0.32*a.defense); }
+  function metabOf(a){ return 0.4*(0.4+a.size)*(1+0.35*a.defense); }
+  function reproThr(a){ return 46+a.size*46+a.defense*26; }
+  function lifespanOf(a){ return 95+a.size*30; }
+  function lightAt(y,H){ return clamp(1-y/H,0,1); }
 
-  function randomGenome(rng) {
-    const g = new Float32Array(GENOME_LEN);
-    for (let i = 0; i < GENOME_LEN; i++) g[i] = gauss(rng) * 0.8;
-    return g;
-  }
-  function mutateGenome(g, rng, rate, size) {
-    const c = new Float32Array(g);
-    for (let i = 0; i < c.length; i++) if (rng() < rate) c[i] += gauss(rng) * size;
-    return c;
-  }
-  const _hid = new Float32Array(N_HID), _out = new Float32Array(N_OUT);
-  function think(g, inp, out, hid) {
-    for (let j = 0; j < N_HID; j++) {
-      let s = g[OFF_B1 + j];
-      const base = j * N_IN;
-      for (let i = 0; i < N_IN; i++) s += g[base + i] * inp[i];
-      hid[j] = Math.tanh(s);
-    }
-    for (let k = 0; k < N_OUT; k++) {
-      let s = g[OFF_B2 + k];
-      const base = OFF_W2 + k * N_HID;
-      for (let j = 0; j < N_HID; j++) s += g[base + j] * hid[j];
-      out[k] = s;
-    }
+  const CELL=150;
+  function buildGrid(items,cell){ const g=new Map();
+    for(let k=0;k<items.length;k++){ const it=items[k]; const key=(Math.floor(it.x/cell))+','+(Math.floor(it.y/cell));
+      let a=g.get(key); if(!a){a=[];g.set(key,a);} a.push(k); } return g; }
+  function eachNeighbor(grid,cell,x,y,fn){ const cx=Math.floor(x/cell),cy=Math.floor(y/cell);
+    for(let gx=cx-1;gx<=cx+1;gx++)for(let gy=cy-1;gy<=cy+1;gy++){ const a=grid.get(gx+','+gy); if(a)for(let k=0;k<a.length;k++)fn(a[k]); } }
+
+  const VIS_HALF=1.25,VIS_CENTER=0.42;
+  function senseInto(w,a,ai,agentGrid,foodGrid,inp){
+    for(let i=0;i<N_IN;i++)inp[i]=0;
+    const vis=visionOf(a.size);
+    const fB=[0,0,0],aB=[0,0,0],aR=[0,0,0],aS=[0,0,0];
+    eachNeighbor(foodGrid,CELL,a.x,a.y,function(fi){ const f=w.foods[fi]; const dx=f.x-a.x,dy=f.y-a.y,d=Math.hypot(dx,dy);
+      if(d>vis||d===0)return; const rel=normAngle(Math.atan2(dy,dx)-a.heading); if(Math.abs(rel)>VIS_HALF)return;
+      const s=Math.abs(rel)<VIS_CENTER?1:(rel<0?0:2); const p=1-d/vis; if(p>fB[s])fB[s]=p; });
+    eachNeighbor(agentGrid,CELL,a.x,a.y,function(oi){ if(oi===ai)return; const o=w.agents[oi]; const dx=o.x-a.x,dy=o.y-a.y,d=Math.hypot(dx,dy);
+      if(d>vis||d===0)return; const rel=normAngle(Math.atan2(dy,dx)-a.heading); if(Math.abs(rel)>VIS_HALF)return;
+      const s=Math.abs(rel)<VIS_CENTER?1:(rel<0?0:2); const p=1-d/vis;
+      if(p>aB[s]){aB[s]=p; aR[s]=Math.tanh((o.size-a.size)/a.size);} const sg=o.signal*p; if(sg>aS[s])aS[s]=sg; });
+    inp[0]=fB[0];inp[1]=fB[1];inp[2]=fB[2]; inp[3]=aB[0];inp[4]=aB[1];inp[5]=aB[2];
+    inp[6]=aR[0];inp[7]=aR[1];inp[8]=aR[2]; inp[9]=aS[0];inp[10]=aS[1];inp[11]=aS[2];
+    inp[12]=clamp(a.energy/reproThr(a),0,1.5)-0.5; inp[13]=a.diet*2-1; inp[14]=Math.sin(a.age*1.6);
   }
 
-  /* ---------- lastnosti iz velikosti ---------- */
-  function radiusOf(size)  { return 3 + size * 3.4; }
-  function visionOf(size)  { return 55 + size * 34; }
-  function maxSpeedOf(size){ return 105 / (0.6 + size * 0.55); }
-  function metabOf(size)   { return 0.45 * (0.4 + size); }
-  function reproThr(size)  { return 46 + size * 46; }
-  function lifespanOf(size){ return 95 + size * 30; }
+  let _nextId=1;
+  function makeAgent(x,y,genome,gn,energy,gen,parentId,rng,born){
+    return { id:_nextId++, parentId:parentId, born:born, x:x,y:y, heading:rng()*6.283,
+      size:gn.size, hue:gn.hue, diet:gn.diet, defense:gn.defense, photo:gn.photo,
+      energy:energy, age:0, gen:gen, signal:0, genome:genome, alive:true }; }
+  function starterGenes(rng){ const sk=()=>rng()*rng(); return { size:0.6+rng()*0.7, hue:rng()*360,
+      diet:sk()*0.85, defense:sk()*0.6, photo:sk()*0.7 }; }
 
-  /* ---------- prostorska mreža ---------- */
-  const CELL = 150;
-  function buildGrid(items, cell) {
-    const g = new Map();
-    for (let k = 0; k < items.length; k++) {
-      const it = items[k];
-      const key = (Math.floor(it.x / cell)) + ',' + (Math.floor(it.y / cell));
-      let arr = g.get(key);
-      if (!arr) { arr = []; g.set(key, arr); }
-      arr.push(k);
-    }
-    return g;
-  }
-  function eachNeighbor(grid, cell, x, y, fn) {
-    const cx = Math.floor(x / cell), cy = Math.floor(y / cell);
-    for (let gx = cx - 1; gx <= cx + 1; gx++)
-      for (let gy = cy - 1; gy <= cy + 1; gy++) {
-        const arr = grid.get(gx + ',' + gy);
-        if (arr) for (let k = 0; k < arr.length; k++) fn(arr[k]);
+  function createWorld(opts){
+    const cfg=Object.assign({ width:900,height:600, seed:(Math.random()*1e9)|0,
+      startAgents:150, startFood:260, foodCap:460, foodSpawnPerSec:55, foodEnergy:22,
+      mutRate:0.12, mutSize:0.35, geneMut:0.06, signalCost:0.8,
+      minSize:0.4, maxSize:3.6, predation:true, replenish:true, replenishBelow:16, popCap:540 }, opts||{});
+    const rng=makeRNG(cfg.seed); _nextId=1;
+    const agents=[],foods=[],corpses=[];
+    for(let i=0;i<cfg.startAgents;i++) agents.push(makeAgent(rng()*cfg.width,rng()*cfg.height,randomGenome(rng),starterGenes(rng),60,0,0,rng,0));
+    for(let i=0;i<cfg.startFood;i++) foods.push({x:rng()*cfg.width,y:rng()*cfg.height});
+    const w={ cfg:cfg,rng:rng,agents:agents,foods:foods,corpses:corpses,
+      time:0,foodAcc:0,maxGen:0,hist:[],histAcc:0,lastDiv:0,lastCplx:0,births:0,kills:0 };
+
+    function mg(v,amt){ return clamp(v+(w.rng()<0.5?gauss(w.rng)*amt:0),0,1); }
+
+    w.step=function(dt){
+      const A=w.agents,F=w.foods,CO=w.corpses,C=w.cfg;
+      const agentGrid=buildGrid(A,CELL), foodGrid=buildGrid(F,CELL);
+      const inp=new Float32Array(N_IN);
+      // faza A
+      for(let i=0;i<A.length;i++){ const a=A[i];
+        senseInto(w,a,i,agentGrid,foodGrid,inp); think(a.genome,inp,_out,_hid);
+        const turn=Math.tanh(_out[0]), thrust=1/(1+Math.exp(-_out[1])), emit=1/(1+Math.exp(-_out[2]));
+        a.signal=emit; a.heading=normAngle(a.heading+turn*3.4*dt);
+        const speed=thrust*maxSpeedOf(a);
+        a.x+=Math.cos(a.heading)*speed*dt; a.y+=Math.sin(a.heading)*speed*dt;
+        if(a.x<0)a.x+=C.width; else if(a.x>=C.width)a.x-=C.width;
+        if(a.y<0)a.y+=C.height; else if(a.y>=C.height)a.y-=C.height;
+        if(a.photo>0.05) a.energy+=a.photo*lightAt(a.y,C.height)*6.5*dt;   // fotosinteza pri gladini
+        a.energy-=(metabOf(a)+0.02*speed*(0.4+a.size)+emit*C.signalCost)*dt;
+        a.age+=dt;
       }
-  }
-
-  /* ---------- čutila ---------- */
-  const VIS_HALF = 1.25, VIS_CENTER = 0.42;
-  function senseInto(w, a, ai, agentGrid, foodGrid, inp) {
-    for (let i = 0; i < N_IN; i++) inp[i] = 0;
-    const vis = visionOf(a.size);
-    const fBest = [0, 0, 0];
-    const aBest = [0, 0, 0], aRel = [0, 0, 0], aSig = [0, 0, 0];
-    eachNeighbor(foodGrid, CELL, a.x, a.y, function (fi) {
-      const f = w.foods[fi];
-      const dx = f.x - a.x, dy = f.y - a.y;
-      const d = Math.hypot(dx, dy);
-      if (d > vis || d === 0) return;
-      const rel = normAngle(Math.atan2(dy, dx) - a.heading);
-      if (Math.abs(rel) > VIS_HALF) return;
-      const sec = Math.abs(rel) < VIS_CENTER ? 1 : (rel < 0 ? 0 : 2);
-      const prox = 1 - d / vis;
-      if (prox > fBest[sec]) fBest[sec] = prox;
-    });
-    eachNeighbor(agentGrid, CELL, a.x, a.y, function (oi) {
-      if (oi === ai) return;
-      const o = w.agents[oi];
-      const dx = o.x - a.x, dy = o.y - a.y;
-      const d = Math.hypot(dx, dy);
-      if (d > vis || d === 0) return;
-      const rel = normAngle(Math.atan2(dy, dx) - a.heading);
-      if (Math.abs(rel) > VIS_HALF) return;
-      const sec = Math.abs(rel) < VIS_CENTER ? 1 : (rel < 0 ? 0 : 2);
-      const prox = 1 - d / vis;
-      if (prox > aBest[sec]) { aBest[sec] = prox; aRel[sec] = Math.tanh((o.size - a.size) / a.size); }
-      const sg = o.signal * prox;
-      if (sg > aSig[sec]) aSig[sec] = sg;
-    });
-    inp[0] = fBest[0]; inp[1] = fBest[1]; inp[2] = fBest[2];
-    inp[3] = aBest[0]; inp[4] = aBest[1]; inp[5] = aBest[2];
-    inp[6] = aRel[0];  inp[7] = aRel[1];  inp[8] = aRel[2];
-    inp[9] = aSig[0];  inp[10] = aSig[1]; inp[11] = aSig[2];
-    inp[12] = clamp(a.energy / reproThr(a.size), 0, 1.5) - 0.5;
-    inp[13] = (a.size - w.cfg.minSize) / (w.cfg.maxSize - w.cfg.minSize) * 2 - 1;
-    inp[14] = Math.sin(a.age * 1.6);
-  }
-
-  /* ---------- svet ---------- */
-  let _nextId = 1;
-  function makeAgent(x, y, genome, size, hue, energy, gen, parentId, rng, born) {
-    return {
-      id: _nextId++, parentId: parentId, born: born,
-      x: x, y: y, heading: rng() * 2 * Math.PI,
-      size: size, hue: hue, energy: energy, age: 0, gen: gen,
-      signal: 0, genome: genome, alive: true
-    };
-  }
-
-  function createWorld(opts) {
-    const cfg = Object.assign({
-      width: 900, height: 600, seed: (Math.random() * 1e9) | 0,
-      startAgents: 130, startFood: 300, foodCap: 520,
-      foodSpawnPerSec: 70, foodEnergy: 22,
-      mutRate: 0.10, mutSize: 0.35, signalCost: 0.9,
-      minSize: 0.4, maxSize: 3.4,
-      predation: true, replenish: true, replenishBelow: 14, popCap: 520
-    }, opts || {});
-    const rng = makeRNG(cfg.seed);
-    _nextId = 1;
-    const agents = [], foods = [];
-    for (let i = 0; i < cfg.startAgents; i++) {
-      const size = 0.7 + rng() * 0.45;
-      agents.push(makeAgent(rng() * cfg.width, rng() * cfg.height,
-        randomGenome(rng), size, rng() * 360, 60, 0, 0, rng, 0));
-    }
-    for (let i = 0; i < cfg.startFood; i++)
-      foods.push({ x: rng() * cfg.width, y: rng() * cfg.height });
-
-    const w = { cfg: cfg, rng: rng, agents: agents, foods: foods,
-                time: 0, foodAcc: 0, maxGen: 0, hist: [], histAcc: 0,
-                lastDiv: 0, lastCplx: 0 };
-
-    w.step = function (dt) {
-      const A = w.agents, F = w.foods, C = w.cfg;
-      const agentGrid = buildGrid(A, CELL);
-      const foodGrid = buildGrid(F, CELL);
-      const inp = new Float32Array(N_IN);
-
-      for (let i = 0; i < A.length; i++) {
-        const a = A[i];
-        senseInto(w, a, i, agentGrid, foodGrid, inp);
-        think(a.genome, inp, _out, _hid);
-        const turn = Math.tanh(_out[0]);
-        const thrust = 1 / (1 + Math.exp(-_out[1]));
-        const emit = 1 / (1 + Math.exp(-_out[2]));
-        a.signal = emit;
-        a.heading = normAngle(a.heading + turn * 3.4 * dt);
-        const speed = thrust * maxSpeedOf(a.size);
-        a.x += Math.cos(a.heading) * speed * dt;
-        a.y += Math.sin(a.heading) * speed * dt;
-        if (a.x < 0) a.x += C.width; else if (a.x >= C.width) a.x -= C.width;
-        if (a.y < 0) a.y += C.height; else if (a.y >= C.height) a.y -= C.height;
-        const cost = (metabOf(a.size) + 0.02 * speed * (0.4 + a.size) + emit * C.signalCost) * dt;
-        a.energy -= cost;
-        a.age += dt;
-      }
-
-      const grid2 = buildGrid(A, CELL);
-      const foodGrid2 = buildGrid(F, CELL);
-      const eatenFood = new Uint8Array(F.length);
-      const newborns = [];
-      const maxE = function (s) { return reproThr(s) * 1.7; };
-
-      for (let i = 0; i < A.length; i++) {
-        const a = A[i];
-        if (!a.alive) continue;
-        const ra = radiusOf(a.size);
-        eachNeighbor(foodGrid2, CELL, a.x, a.y, function (fi) {
-          if (eatenFood[fi]) return;
-          const f = F[fi];
-          if (Math.hypot(f.x - a.x, f.y - a.y) < ra + 4) { eatenFood[fi] = 1; a.energy += C.foodEnergy; }
-        });
-        if (a.energy > maxE(a.size)) a.energy = maxE(a.size);
-
-        if (C.predation) {
-          eachNeighbor(grid2, CELL, a.x, a.y, function (oi) {
-            const o = A[oi];
-            if (!o.alive || oi === i || a.size <= o.size * 1.25) return;
-            if (Math.hypot(o.x - a.x, o.y - a.y) < ra + radiusOf(o.size)) {
-              a.energy = Math.min(maxE(a.size), a.energy + 10 + o.energy * 0.55);
-              o.alive = false;
-            }
-          });
+      // faza B
+      const grid2=buildGrid(A,CELL), foodGrid2=buildGrid(F,CELL), corpGrid=buildGrid(CO,CELL);
+      const eaten=new Uint8Array(F.length), eatenC=new Uint8Array(CO.length), newborns=[];
+      const maxE=function(a){ return reproThr(a)*1.75; };
+      for(let i=0;i<A.length;i++){ const a=A[i]; if(!a.alive)continue; const ra=radiusOf(a.size);
+        // rastlinska hrana (rastlinojedci učinkoviti)
+        eachNeighbor(foodGrid2,CELL,a.x,a.y,function(fi){ if(eaten[fi])return; const f=F[fi];
+          if(Math.hypot(f.x-a.x,f.y-a.y)<ra+4){ eaten[fi]=1; a.energy+=C.foodEnergy*(0.28+0.72*(1-a.diet)); } });
+        // mrhovina (plenilci/mrhovinarji učinkoviti)
+        eachNeighbor(corpGrid,CELL,a.x,a.y,function(ci){ if(eatenC[ci])return; const cc=CO[ci];
+          if(Math.hypot(cc.x-a.x,cc.y-a.y)<ra+4){ eatenC[ci]=1; a.energy+=cc.energy*(0.3+0.7*a.diet); } });
+        if(a.energy>maxE(a))a.energy=maxE(a);
+        // predacija: plenilci jedo manjše, oklep ščiti
+        if(C.predation && a.diet>0.3){
+          eachNeighbor(grid2,CELL,a.x,a.y,function(oi){ const o=A[oi]; if(!o.alive||oi===i)return;
+            if(a.size<=o.size*(1.15+o.defense*0.8))return;
+            if(Math.hypot(o.x-a.x,o.y-a.y)<ra+radiusOf(o.size)){
+              a.energy=Math.min(maxE(a),a.energy+(10+o.energy*0.5)*(0.4+0.6*a.diet)); o.alive=false; w.kills++; } });
         }
-
-        if (a.alive && a.energy >= reproThr(a.size) && A.length + newborns.length < C.popCap) {
-          const half = a.energy * 0.5; a.energy = half;
-          let ns = clamp(a.size + (w.rng() < 0.6 ? gauss(w.rng) * 0.08 : 0), C.minSize, C.maxSize);
-          const child = makeAgent(a.x + (w.rng() - 0.5) * 12, a.y + (w.rng() - 0.5) * 12,
-            mutateGenome(a.genome, w.rng, C.mutRate, C.mutSize),
-            ns, (a.hue + gauss(w.rng) * 6 + 360) % 360, half * 0.9, a.gen + 1, a.id, w.rng, w.time);
-          if (child.gen > w.maxGen) w.maxGen = child.gen;
-          newborns.push(child);
+        // razmnoževanje
+        if(a.alive && a.energy>=reproThr(a) && A.length+newborns.length<C.popCap){
+          const half=a.energy*0.5; a.energy=half;
+          const gn={ size:clamp(a.size+(w.rng()<0.6?gauss(w.rng)*0.08:0),C.minSize,C.maxSize),
+            hue:(a.hue+gauss(w.rng)*6+360)%360, diet:mg(a.diet,C.geneMut), defense:mg(a.defense,C.geneMut), photo:mg(a.photo,C.geneMut) };
+          const child=makeAgent(a.x+(w.rng()-0.5)*12,a.y+(w.rng()-0.5)*12,
+            mutateGenome(a.genome,w.rng,C.mutRate,C.mutSize),gn,half*0.9,a.gen+1,a.id,w.rng,w.time);
+          if(child.gen>w.maxGen)w.maxGen=child.gen; newborns.push(child); w.births++;
         }
-        if (a.energy <= 0 || a.age > lifespanOf(a.size)) a.alive = false;
+        if(a.energy<=0||a.age>lifespanOf(a)){ a.alive=false; CO.push({x:a.x,y:a.y,energy:12+a.size*16,age:0}); }
       }
-
-      let n = 0;
-      for (let i = 0; i < A.length; i++) if (A[i].alive) A[n++] = A[i];
-      A.length = n;
-      for (let i = 0; i < newborns.length; i++) A.push(newborns[i]);
-
-      let m = 0;
-      for (let i = 0; i < F.length; i++) if (!eatenFood[i]) F[m++] = F[i];
-      F.length = m;
-
-      w.foodAcc += C.foodSpawnPerSec * dt;
-      while (w.foodAcc >= 1 && F.length < C.foodCap) {
-        F.push({ x: w.rng() * C.width, y: w.rng() * C.height }); w.foodAcc -= 1;
-      }
-      if (C.replenish && A.length < C.replenishBelow) {
-        for (let i = 0; i < 6 && A.length < C.popCap; i++) {
-          const size = 0.7 + w.rng() * 0.45;
-          A.push(makeAgent(w.rng() * C.width, w.rng() * C.height,
-            randomGenome(w.rng), size, w.rng() * 360, 60, 0, 0, w.rng, w.time));
-        }
-      }
-
-      w.time += dt;
-      w.histAcc += dt;
-      if (w.histAcc >= 0.5) {
-        w.histAcc -= 0.5;
-        const L = GENOME_LEN;
-        const mean = new Float64Array(L);
-        for (let i = 0; i < A.length; i++) { const g = A[i].genome; for (let j = 0; j < L; j++) mean[j] += g[j]; }
-        if (A.length) for (let j = 0; j < L; j++) mean[j] /= A.length;
-        let div = 0, cplx = 0;
-        for (let i = 0; i < A.length; i++) {
-          const g = A[i].genome; let d = 0;
-          for (let j = 0; j < L; j++) { const e = g[j] - mean[j]; d += e * e; cplx += Math.abs(g[j]); }
-          div += Math.sqrt(d / L);
-        }
-        if (A.length) { div /= A.length; cplx /= (A.length * L); }
-        w.lastDiv = div; w.lastCplx = cplx;
-        const bins = new Array(12).fill(0);
-        for (let i = 0; i < A.length; i++) bins[Math.floor(A[i].hue / 30) % 12]++;
-        w.hist.push({ t: w.time, pop: A.length, food: F.length, div: div, cplx: cplx, bins: bins });
-        if (w.hist.length > 600) w.hist.shift();
-      }
+      let n=0; for(let i=0;i<A.length;i++) if(A[i].alive)A[n++]=A[i]; A.length=n;
+      for(let i=0;i<newborns.length;i++)A.push(newborns[i]);
+      let m=0; for(let i=0;i<F.length;i++) if(!eaten[i])F[m++]=F[i]; F.length=m;
+      // trupla: staranje + pojedena
+      let c=0; for(let i=0;i<CO.length;i++){ if(eatenC[i])continue; CO[i].age+=dt; if(CO[i].age<16)CO[c++]=CO[i]; } CO.length=c;
+      // nova rastlinska hrana
+      w.foodAcc+=C.foodSpawnPerSec*dt;
+      while(w.foodAcc>=1 && F.length<C.foodCap){ F.push({x:w.rng()*C.width,y:w.rng()*C.height}); w.foodAcc-=1; }
+      if(C.replenish && A.length<C.replenishBelow){ for(let i=0;i<6 && A.length<C.popCap;i++)
+        A.push(makeAgent(w.rng()*C.width,w.rng()*C.height,randomGenome(w.rng),starterGenes(w.rng),60,0,0,w.rng,w.time)); }
+      w.time+=dt; w.histAcc+=dt;
+      if(w.histAcc>=0.5){ w.histAcc-=0.5; const L=GENOME_LEN, mean=new Float64Array(L);
+        for(let i=0;i<A.length;i++){ const g=A[i].genome; for(let j=0;j<L;j++)mean[j]+=g[j]; }
+        if(A.length)for(let j=0;j<L;j++)mean[j]/=A.length;
+        let div=0,cplx=0; for(let i=0;i<A.length;i++){ const g=A[i].genome; let d=0; for(let j=0;j<L;j++){ const e=g[j]-mean[j]; d+=e*e; cplx+=Math.abs(g[j]); } div+=Math.sqrt(d/L); }
+        if(A.length){ div/=A.length; cplx/=(A.length*L); } w.lastDiv=div; w.lastCplx=cplx;
+        const bins=new Array(12).fill(0); for(let i=0;i<A.length;i++)bins[Math.floor(A[i].hue/30)%12]++;
+        w.hist.push({t:w.time,pop:A.length,food:F.length,div:div,bins:bins}); if(w.hist.length>600)w.hist.shift(); }
     };
 
-    w.inspect = function (a) {
-      const inp = new Float32Array(N_IN);
-      senseInto(w, a, w.agents.indexOf(a), buildGrid(w.agents, CELL), buildGrid(w.foods, CELL), inp);
-      const out = new Float32Array(N_OUT), hid = new Float32Array(N_HID);
-      think(a.genome, inp, out, hid);
-      return { inp: Array.from(inp), hid: Array.from(hid), out: Array.from(out) };
-    };
-    w.speciesCount = function () {
-      const b = new Uint8Array(12);
-      for (let i = 0; i < w.agents.length; i++) b[Math.floor(w.agents[i].hue / 30) % 12] = 1;
-      let c = 0; for (let i = 0; i < 12; i++) c += b[i]; return c;
-    };
-    w.avgSize = function () {
-      if (!w.agents.length) return 0;
-      let s = 0; for (let i = 0; i < w.agents.length; i++) s += w.agents[i].size;
-      return s / w.agents.length;
-    };
+    w.strike=function(x,y,r){ let n=0; const r2=r*r;
+      for(let i=0;i<w.agents.length;i++){ const a=w.agents[i]; const dx=a.x-x,dy=a.y-y;
+        if(dx*dx+dy*dy<r2){ a.alive=false; w.corpses.push({x:a.x,y:a.y,energy:10+a.size*14,age:0}); n++; } }
+      let k=0; for(let i=0;i<w.agents.length;i++) if(w.agents[i].alive)w.agents[k++]=w.agents[i]; w.agents.length=k; return n; };
+
+    w.inspect=function(a){ const inp=new Float32Array(N_IN);
+      senseInto(w,a,w.agents.indexOf(a),buildGrid(w.agents,CELL),buildGrid(w.foods,CELL),inp);
+      const out=new Float32Array(N_OUT),hid=new Float32Array(N_HID); think(a.genome,inp,out,hid);
+      return { inp:Array.from(inp), hid:Array.from(hid), out:Array.from(out) }; };
+    w.roleCounts=function(){ const r=[0,0,0,0]; for(let i=0;i<w.agents.length;i++)r[roleOf(w.agents[i])]++; return r; };
+    w.speciesCount=function(){ const b=new Uint8Array(12); for(let i=0;i<w.agents.length;i++)b[Math.floor(w.agents[i].hue/30)%12]=1; let c=0; for(let i=0;i<12;i++)c+=b[i]; return c; };
+    w.avgSize=function(){ if(!w.agents.length)return 0; let s=0; for(let i=0;i<w.agents.length;i++)s+=w.agents[i].size; return s/w.agents.length; };
+    w.maxSizeNow=function(){ let m=0; for(let i=0;i<w.agents.length;i++) if(w.agents[i].size>m)m=w.agents[i].size; return m; };
     return w;
   }
 
-  const Sim = {
-    createWorld: createWorld, think: think,
-    radiusOf: radiusOf, visionOf: visionOf, maxSpeedOf: maxSpeedOf,
-    NN: { N_IN: N_IN, N_HID: N_HID, N_OUT: N_OUT, GENOME_LEN: GENOME_LEN, OFF_W2: OFF_W2 }
-  };
-  global.Sim = Sim;
-  if (typeof module !== 'undefined' && module.exports) module.exports = Sim;
-})(typeof globalThis !== 'undefined' ? globalThis : this);
+  const Sim={ createWorld:createWorld, think:think, roleOf:roleOf, radiusOf:radiusOf, visionOf:visionOf,
+    NN:{N_IN:N_IN,N_HID:N_HID,N_OUT:N_OUT,GENOME_LEN:GENOME_LEN,OFF_W2:OFF_W2} };
+  global.Sim=Sim; if(typeof module!=='undefined'&&module.exports)module.exports=Sim;
+})(typeof globalThis!=='undefined'?globalThis:this);
 /*ENGINE-END*/
 </script>
 
 <script>
-/* ================= 3D PODVODNI PRIKAZ + UI ================= */
+/* ================= 3D EKOSISTEM + UI ================= */
 (function () {
   const Sim = globalThis.Sim;
   const world = { cur: Sim.createWorld({}) };
   let paused = false, speed = 1, selectedId = null;
 
-  /* ---- Three.js prizor ---- */
-  const canvas = document.getElementById('gl');
-  const glbox = document.getElementById('glbox');
-  const W0 = world.cur.cfg.width, H0 = world.cur.cfg.height;
-  const SCALE = 0.02;                    // sim -> svet
-  const wW = W0 * SCALE, wH = H0 * SCALE; // ~18 x 12
-  const DEPTH = 5.0;
-  const CAP = world.cur.cfg.popCap;
+  const ROLES = [
+    { name:'Rastlinojedec', icon:'🌿', col:'#7fd3ff' },
+    { name:'Plenilec',      icon:'🦷', col:'#ff8a6b' },
+    { name:'Oklepnik',      icon:'🛡️', col:'#c8d2dc' },
+    { name:'Avtotrof',      icon:'🌱', col:'#7be88a' }
+  ];
+
+  const canvas = document.getElementById('gl'), glbox = document.getElementById('glbox');
+  const W0 = world.cur.cfg.width, H0 = world.cur.cfg.height, SCALE = 0.02;
+  const wW = W0*SCALE, wH = H0*SCALE, DEPTH = 5.0, CAP = world.cur.cfg.popCap;
 
   const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   if (THREE.sRGBEncoding !== undefined) renderer.outputEncoding = THREE.sRGBEncoding;
 
   const scene = new THREE.Scene();
-  // ozadje: navpičen preliv (površina svetla -> globina temna)
-  (function () {
-    const c = document.createElement('canvas'); c.width = 8; c.height = 256;
-    const g = c.getContext('2d'); const grd = g.createLinearGradient(0, 0, 0, 256);
-    grd.addColorStop(0, '#0f5566'); grd.addColorStop(0.45, '#083341');
-    grd.addColorStop(1, '#02060e'); g.fillStyle = grd; g.fillRect(0, 0, 8, 256);
-    scene.background = new THREE.CanvasTexture(c);
-  })();
+  (function(){ const c=document.createElement('canvas');c.width=8;c.height=256;const g=c.getContext('2d');
+    const gr=g.createLinearGradient(0,0,0,256); gr.addColorStop(0,'#0f5566');gr.addColorStop(.45,'#083341');gr.addColorStop(1,'#02060e');
+    g.fillStyle=gr;g.fillRect(0,0,8,256); scene.background=new THREE.CanvasTexture(c); })();
   scene.fog = new THREE.FogExp2(0x052030, 0.05);
 
-  const camera = new THREE.PerspectiveCamera(52, 16 / 10, 0.1, 300);
-  const cam = { theta: 0.5, phi: 1.15, r: 26, tx: 0, ty: 0, tz: 0, auto: true };
-  function placeCamera() {
-    const sp = Math.sin(cam.phi);
-    camera.position.set(
-      cam.tx + cam.r * sp * Math.sin(cam.theta),
-      cam.ty + cam.r * Math.cos(cam.phi),
-      cam.tz + cam.r * sp * Math.cos(cam.theta));
-    camera.lookAt(cam.tx, cam.ty, cam.tz);
-  }
+  const camera = new THREE.PerspectiveCamera(52, 16/10, 0.1, 300);
+  const cam = { theta:0.5, phi:1.12, r:22, auto:true };
+  function placeCamera(){ const sp=Math.sin(cam.phi);
+    camera.position.set(cam.r*sp*Math.sin(cam.theta), cam.r*Math.cos(cam.phi), cam.r*sp*Math.cos(cam.theta));
+    camera.lookAt(0,0,0); }
 
-  scene.add(new THREE.AmbientLight(0x6fb6d6, 0.75));
-  const sun = new THREE.DirectionalLight(0xbfefff, 0.9); sun.position.set(2, 12, 4); scene.add(sun);
-  const fill = new THREE.DirectionalLight(0x2255aa, 0.5); fill.position.set(-4, -6, -3); scene.add(fill);
+  scene.add(new THREE.AmbientLight(0x6fb6d6, 0.8));
+  const sun=new THREE.DirectionalLight(0xbfefff,0.95); sun.position.set(2,12,4); scene.add(sun);
+  const fill=new THREE.DirectionalLight(0x2255aa,0.5); fill.position.set(-4,-6,-3); scene.add(fill);
 
-  /* telesa bitij: instancirana podolgovata oblika */
-  const bodyGeo = new THREE.IcosahedronGeometry(0.5, 1); bodyGeo.scale(1.8, 0.85, 0.85);
-  const bodyMat = new THREE.MeshStandardMaterial({ roughness: 0.45, metalness: 0.0,
-    emissive: 0x0a2230, emissiveIntensity: 0.6 });
-  const bodies = new THREE.InstancedMesh(bodyGeo, bodyMat, CAP);
-  bodies.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  bodies.count = 0; scene.add(bodies);
-  const _c0 = new THREE.Color();
-  for (let i = 0; i < CAP; i++) bodies.setColorAt(i, _c0.setHSL(0.5, 0.6, 0.5));
-
-  /* žareče avreole (bioluminescenca) — točkovni šejder */
-  const glowGeo = new THREE.BufferGeometry();
-  const glowPos = new Float32Array(CAP * 3);
-  const glowCol = new Float32Array(CAP * 3);
-  const glowSize = new Float32Array(CAP);
-  glowGeo.setAttribute('position', new THREE.BufferAttribute(glowPos, 3));
-  glowGeo.setAttribute('aColor', new THREE.BufferAttribute(glowCol, 3));
-  glowGeo.setAttribute('aSize', new THREE.BufferAttribute(glowSize, 1));
-  glowGeo.setDrawRange(0, 0);
-  const glowMat = new THREE.ShaderMaterial({
-    uniforms: { uScale: { value: 120.0 } },
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-    vertexShader:
-      'attribute float aSize; attribute vec3 aColor; varying vec3 vColor; uniform float uScale;' +
-      'void main(){ vColor=aColor; vec4 mv=modelViewMatrix*vec4(position,1.0);' +
-      ' gl_PointSize=aSize*(uScale/ -mv.z); gl_Position=projectionMatrix*mv; }',
-    fragmentShader:
-      'precision mediump float; varying vec3 vColor;' +
-      'void main(){ float d=length(gl_PointCoord-vec2(0.5)); float a=smoothstep(0.5,0.0,d);' +
-      ' a=pow(a,1.7); gl_FragColor=vec4(vColor,a); }'
-  });
-  scene.add(new THREE.Points(glowGeo, glowMat));
-
-  /* hrana: drobne zelenkaste iskre */
-  const FOODCAP = world.cur.cfg.foodCap;
-  const foodGeo = new THREE.BufferGeometry();
-  const foodPos = new Float32Array(FOODCAP * 3);
-  foodGeo.setAttribute('position', new THREE.BufferAttribute(foodPos, 3));
-  foodGeo.setDrawRange(0, 0);
-  scene.add(new THREE.Points(foodGeo, new THREE.PointsMaterial({
-    color: 0x6affc0, size: 0.14, transparent: true, opacity: 0.75,
-    depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true })));
-
-  /* morski sneg: počasi toneči delci */
-  const SNOW = 1400;
-  const snowGeo = new THREE.BufferGeometry();
-  const snowPos = new Float32Array(SNOW * 3);
-  for (let i = 0; i < SNOW; i++) {
-    snowPos[i*3]   = (Math.random() - 0.5) * (wW + 8);
-    snowPos[i*3+1] = (Math.random() - 0.5) * (wH + 6);
-    snowPos[i*3+2] = (Math.random() - 0.5) * (DEPTH * 2 + 6);
-  }
-  snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
-  scene.add(new THREE.Points(snowGeo, new THREE.PointsMaterial({
-    color: 0xbfe6ff, size: 0.05, transparent: true, opacity: 0.5, depthWrite: false })));
-
-  /* svetlobni žarki od zgoraj */
-  const rayMat = new THREE.MeshBasicMaterial({ color: 0x7fd3ff, transparent: true,
-    opacity: 0.04, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
-  const rays = new THREE.Group();
-  for (let i = 0; i < 5; i++) {
-    const p = new THREE.Mesh(new THREE.PlaneGeometry(1.4, wH + 8), rayMat);
-    p.position.set((i - 2) * 3.4 + (Math.random()-0.5)*2, 2, (Math.random()-0.5)*DEPTH);
-    p.rotation.z = 0.12 * (i - 2); rays.add(p);
-  }
-  scene.add(rays);
-
-  /* obroč okoli izbranega bitja */
-  const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true,
-    opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
-  const ring = new THREE.Mesh(new THREE.RingGeometry(0.7, 0.82, 28), ringMat);
-  ring.visible = false; scene.add(ring);
-
-  /* mapiranje sim -> svet */
-  function hash01(n){ let x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); }
-  function worldOf(a, t) {
-    const wx = (a.x - W0 / 2) * SCALE;
-    const wy = (H0 / 2 - a.y) * SCALE;
-    const dz = (hash01(a.id) - 0.5) * 2 * DEPTH;
-    const bob = Math.sin(t * 0.7 + a.id * 1.7) * 0.25;
-    return { x: wx, y: wy + bob, z: dz };
-  }
-
-  const dummy = new THREE.Object3D(), col = new THREE.Color();
-  const renderIds = new Int32Array(CAP);
-
-  function syncScene(t) {
-    const A = world.cur.agents;
-    const n = Math.min(A.length, CAP);
-    let sel = null;
-    for (let i = 0; i < n; i++) {
-      const a = A[i];
-      const p = worldOf(a, t);
-      renderIds[i] = a.id;
-      // telo
-      dummy.position.set(p.x, p.y, p.z);
-      dummy.rotation.set(0, 0, -a.heading);
-      const s = 0.35 + a.size * 0.5;
-      dummy.scale.set(s, s, s);
-      dummy.updateMatrix();
-      bodies.setMatrixAt(i, dummy.matrix);
-      const lum = 0.42 + Math.min(0.28, a.energy / 260);
-      bodies.setColorAt(i, col.setHSL((a.hue % 360) / 360, 0.72, lum));
-      // avreola
-      glowPos[i*3] = p.x; glowPos[i*3+1] = p.y; glowPos[i*3+2] = p.z;
-      col.setHSL((a.hue % 360) / 360, 0.85, 0.6);
-      const gi = 0.42 + a.signal * 0.95;
-      glowCol[i*3] = col.r * gi; glowCol[i*3+1] = col.g * gi; glowCol[i*3+2] = col.b * gi;
-      glowSize[i] = (1.05 + a.size * 1.2) * (0.62 + a.signal * 1.5);
-      if (a.id === selectedId) sel = { a: a, p: p, s: s };
-    }
-    bodies.count = n;
-    bodies.instanceMatrix.needsUpdate = true;
-    if (bodies.instanceColor) bodies.instanceColor.needsUpdate = true;
-    glowGeo.setDrawRange(0, n);
-    glowGeo.attributes.position.needsUpdate = true;
-    glowGeo.attributes.aColor.needsUpdate = true;
-    glowGeo.attributes.aSize.needsUpdate = true;
-
-    // hrana
-    const F = world.cur.foods, fn = Math.min(F.length, FOODCAP);
-    for (let i = 0; i < fn; i++) {
-      foodPos[i*3] = (F[i].x - W0/2) * SCALE;
-      foodPos[i*3+1] = (H0/2 - F[i].y) * SCALE;
-      foodPos[i*3+2] = (hash01(i * 7.3 + 3.1) - 0.5) * 2 * DEPTH;
-    }
-    foodGeo.setDrawRange(0, fn);
-    foodGeo.attributes.position.needsUpdate = true;
-
-    // izbrani
-    if (sel) {
-      ring.visible = true;
-      ring.position.set(sel.p.x, sel.p.y, sel.p.z);
-      ring.scale.setScalar(sel.s * 3.4 + 1.2);
-      ring.lookAt(camera.position);
-    } else { ring.visible = false; if (selectedId !== null && !world.cur.agents.some(a=>a.id===selectedId)) selectedId = null; }
-  }
-
-  function updateSnow(dt) {
-    for (let i = 0; i < SNOW; i++) {
-      snowPos[i*3+1] -= dt * 0.35;
-      snowPos[i*3]   += Math.sin(performance.now()*0.0003 + i) * dt * 0.05;
-      if (snowPos[i*3+1] < -(wH/2 + 3)) snowPos[i*3+1] = wH/2 + 3;
-    }
-    snowGeo.attributes.position.needsUpdate = true;
-  }
-
-  /* ---- kamera: vlečenje, zoom ---- */
-  let drag = false, px = 0, py = 0;
-  canvas.addEventListener('pointerdown', e => { drag = true; px = e.clientX; py = e.clientY; cam.auto = false; canvas.setPointerCapture(e.pointerId); });
-  canvas.addEventListener('pointermove', e => {
-    if (!drag) return;
-    cam.theta -= (e.clientX - px) * 0.008;
-    cam.phi = Math.max(0.25, Math.min(1.6, cam.phi - (e.clientY - py) * 0.006));
-    px = e.clientX; py = e.clientY;
-  });
-  canvas.addEventListener('pointerup', e => { drag = false; });
-  canvas.addEventListener('wheel', e => { e.preventDefault(); cam.r = Math.max(10, Math.min(60, cam.r * (1 + Math.sign(e.deltaY) * 0.08))); }, { passive: false });
-
-  /* ---- klik = izbira (razločimo od vlečenja) ---- */
-  let downX = 0, downY = 0;
-  canvas.addEventListener('pointerdown', e => { downX = e.clientX; downY = e.clientY; });
-  canvas.addEventListener('pointerup', e => {
-    if (Math.hypot(e.clientX - downX, e.clientY - downY) > 5) return; // to je bilo vlečenje
-    const r = canvas.getBoundingClientRect();
-    const nx = ((e.clientX - r.left) / r.width) * 2 - 1;
-    const ny = -(((e.clientY - r.top) / r.height) * 2 - 1);
-    const rc = new THREE.Raycaster();
-    rc.params.Points = { threshold: 0.6 };
-    rc.setFromCamera({ x: nx, y: ny }, camera);
-    const hit = rc.intersectObject(bodies);
-    if (hit.length && hit[0].instanceId != null && hit[0].instanceId < bodies.count) {
-      selectedId = renderIds[hit[0].instanceId]; cam.auto = false;
-    } else selectedId = null;
-  });
-
-  function resize() {
-    const w = glbox.clientWidth, h = Math.round(w * 10 / 16);
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h; camera.updateProjectionMatrix();
-  }
-  window.addEventListener('resize', resize);
-
-  /* ================= gumbi / UI ================= */
-  const $ = id => document.getElementById(id);
-  const btnPause = $('btnPause');
-  btnPause.onclick = () => { paused = !paused; btnPause.textContent = paused ? '▶ Nadaljuj' : '⏸ Pavza'; };
-  const tPred = $('tPred'), tRepl = $('tRepl');
-  $('btnReset').onclick = () => {
-    world.cur = Sim.createWorld({ mutRate: +mr.value, foodSpawnPerSec: +fr.value,
-      predation: tPred.checked, replenish: tRepl.checked });
-    selectedId = null; cardId = null; pop.classList.remove('show');
-  };
-  document.querySelectorAll('#segSpeed button').forEach(b => b.onclick = () => {
-    speed = +b.dataset.speed;
-    document.querySelectorAll('#segSpeed button').forEach(x => x.classList.toggle('on', x === b));
-  });
-  const mr = $('mr'), fr = $('fr');
-  mr.oninput = () => { $('mrv').textContent = (+mr.value).toFixed(2); world.cur.cfg.mutRate = +mr.value; };
-  fr.oninput = () => { $('frv').textContent = +fr.value; world.cur.cfg.foodSpawnPerSec = +fr.value; };
-  tPred.onchange = () => { world.cur.cfg.predation = tPred.checked; };
-  tRepl.onchange = () => { world.cur.cfg.replenish = tRepl.checked; };
-
-  /* ---- graf: populacija + raznolikost + hrana ---- */
-  const gtx = $('graph').getContext('2d'), GV = $('graph');
-  function drawGraph() {
-    const h = world.cur.hist; gtx.clearRect(0, 0, GV.width, GV.height);
-    if (h.length < 2) return;
-    let mp = 10, mf = 10, mdv = 0.1;
-    for (const p of h) { if (p.pop > mp) mp = p.pop; if (p.food > mf) mf = p.food; if (p.div > mdv) mdv = p.div; }
-    const X = i => i / (h.length - 1) * GV.width;
-    const line = (key, max, color, wdt) => {
-      gtx.strokeStyle = color; gtx.lineWidth = wdt; gtx.beginPath();
-      h.forEach((p, i) => { const y = GV.height - (p[key]/max)*(GV.height-6) - 3; i?gtx.lineTo(X(i),y):gtx.moveTo(X(i),y); });
-      gtx.stroke();
-    };
-    line('food', mf, 'rgba(58,107,85,.8)', 1);
-    line('div', mdv, '#ff77c8', 1.3);
-    line('pop', mp, '#38e1c8', 1.7);
-  }
-
-  /* ---- Mullerjev graf linij ---- */
-  const mtx = $('muller').getContext('2d'), MV = $('muller');
-  function drawMuller() {
-    const h = world.cur.hist; mtx.clearRect(0, 0, MV.width, MV.height);
-    if (h.length < 2) return;
-    const X = i => i / (h.length - 1) * MV.width;
-    for (let i = 1; i < h.length; i++) {
-      const a = h[i-1], b = h[i];
-      const sa = a.bins.reduce((s,v)=>s+v,0) || 1, sb = b.bins.reduce((s,v)=>s+v,0) || 1;
-      let ya = 0, yb = 0;
-      for (let k = 0; k < 12; k++) {
-        const a0 = ya, b0 = yb;
-        ya += a.bins[k]/sa * MV.height; yb += b.bins[k]/sb * MV.height;
-        mtx.fillStyle = `hsl(${k*30} 68% 55%)`;
-        mtx.beginPath();
-        mtx.moveTo(X(i-1), MV.height - a0); mtx.lineTo(X(i), MV.height - b0);
-        mtx.lineTo(X(i), MV.height - yb); mtx.lineTo(X(i-1), MV.height - ya);
-        mtx.closePath(); mtx.fill();
-      }
-    }
-  }
-
-  /* ---- nišna karta: velikost × linija ---- */
-  const ntx = $('niche').getContext('2d'), NV = $('niche');
-  const SB = 8, HB = 12;
-  function drawNiche() {
-    const A = world.cur.agents, C = world.cur.cfg;
-    const grid = new Float32Array(SB * HB); let mx = 1;
-    for (const a of A) {
-      const sx = Math.min(SB-1, Math.floor((a.size - C.minSize)/(C.maxSize - C.minSize) * SB));
-      const hy = Math.floor(a.hue/30) % HB;
-      const idx = hy*SB + sx; grid[idx]++; if (grid[idx] > mx) mx = grid[idx];
-    }
-    ntx.clearRect(0,0,NV.width,NV.height);
-    const cw = NV.width/SB, ch = NV.height/HB;
-    for (let hy = 0; hy < HB; hy++) for (let sx = 0; sx < SB; sx++) {
-      const v = grid[hy*SB+sx]/mx;
-      ntx.fillStyle = v > 0 ? `hsl(${hy*30} 65% ${12 + v*45}%)` : '#07121e';
-      ntx.fillRect(sx*cw+0.5, hy*ch+0.5, cw-1, ch-1);
-    }
-  }
-
-  /* ---- statistika ---- */
-  function updateStats(fps) {
-    const w = world.cur;
-    $('sTime').textContent = w.time.toFixed(0) + 's';
-    $('sPop').textContent = w.agents.length;
-    $('sFood').textContent = w.foods.length;
-    $('sGen').textContent = w.maxGen;
-    $('sSize').textContent = w.avgSize().toFixed(2);
-    $('sDiv').textContent = w.lastDiv.toFixed(3);
-    $('sCplx').textContent = w.lastCplx.toFixed(3);
-    $('sFps').textContent = fps.toFixed(0);
-    $('ov').textContent = w.agents.length + ' bitij · rod ' + w.maxGen + ' · ' + w.time.toFixed(0) + 's';
-  }
-
-  /* ================= lebdeči vpogled v možgane (kartica nad bitjem) ================= */
-  const pop = $('pop'), card = $('card');
-  const _pv = new THREE.Vector3();
-  let cardId = null, cardRefs = null;
-  const IN_GROUPS = [
-    { label: 'Hrana',       idx: [0,1,2],   signed: false },
-    { label: 'Sosed',       idx: [3,4,5],   signed: false },
-    { label: 'Vel. soseda', idx: [6,7,8],   signed: true  },
-    { label: 'Signal',      idx: [9,10,11], signed: false }
+  /* ---- telesa: 4 oblike po vlogi ---- */
+  const geoms = [
+    (()=>{ const g=new THREE.IcosahedronGeometry(0.5,1); g.scale(1.15,0.92,0.92); return g; })(),          // rastlinojed: okrogel
+    (()=>{ const g=new THREE.ConeGeometry(0.4,1.7,7); g.rotateZ(-Math.PI/2); return g; })(),                // plenilec: sulica
+    (()=>{ const g=new THREE.OctahedronGeometry(0.62,0); return g; })(),                                    // oklepnik: kristal
+    (()=>{ const g=new THREE.OctahedronGeometry(0.5,0); g.scale(0.55,1.6,0.55); return g; })()              // avtotrof: list
   ];
-  function barRow(label, id, signed) {
-    return `<div class="brow"><span class="bl">${label}</span>` +
-      `<span class="bar${signed ? ' signed' : ''}" id="${id}"><i></i></span>` +
-      `<span class="val" id="${id}v"></span></div>`;
-  }
-  function buildCard(a) {
-    cardId = a.id;
-    let h = `<div class="top"><span class="swatch" id="cSw"></span>` +
-      `<span class="name" id="cName"></span><span class="x" id="cX">✕</span></div>` +
-      `<div class="chips"><span class="chip">velikost <b id="cVel"></b></span>` +
-      `<span class="chip">energija <b id="cEn"></b></span>` +
-      `<span class="chip">starost <b id="cAge"></b></span>` +
-      `<span class="chip">rod <b id="cGen"></b></span></div>` +
-      `<div class="sec">Čutila — kaj vidi<span class="hdr3"><span>L</span><span>S</span><span>D</span></span></div>`;
-    IN_GROUPS.forEach(g => {
-      h += `<div class="brow"><span class="bl">${g.label}</span><span class="cells">` +
-        `<span class="cell"><i></i></span><span class="cell"><i></i></span><span class="cell"><i></i></span>` +
-        `</span></div>`;
-    });
-    h += barRow('Energija', 'sEn', false) + barRow('Velikost', 'sSz', false) + barRow('Ritem', 'sRt', true);
-    h += `<div class="sec">Odločitev — kaj naredi</div>`;
-    h += barRow('Zavij', 'dTurn', true) + barRow('Pospeši', 'dThr', false) + barRow('Oddaj signal', 'dEmit', false);
-    card.innerHTML = h;
-    const ref = id => { const el = $(id); return { i: el.querySelector('i'), v: $(id + 'v') }; };
-    cardRefs = {
-      sw: $('cSw'), name: $('cName'), vel: $('cVel'), en: $('cEn'), age: $('cAge'), gen: $('cGen'),
-      cells: Array.from(card.querySelectorAll('.cell')).map(c => c.querySelector('i')),
-      sEn: ref('sEn'), sSz: ref('sSz'), sRt: ref('sRt'),
-      dTurn: ref('dTurn'), dThr: ref('dThr'), dEmit: ref('dEmit')
-    };
-    $('cX').onclick = () => { selectedId = null; };
-  }
-  function setBar(r, v, signed) {
-    if (signed) {
-      const w = Math.min(1, Math.abs(v)) * 50;
-      r.i.style.left = (v >= 0 ? 50 : 50 - w) + '%'; r.i.style.width = w + '%';
-      r.i.style.background = v >= 0 ? '#7fd3ff' : '#ff77c8';
-    } else {
-      r.i.style.left = '0%'; r.i.style.width = Math.min(1, Math.max(0, v)) * 100 + '%';
-      r.i.style.background = '#38e1c8';
+  const bodies=[], rIds=[];
+  for(let k=0;k<4;k++){ const mat=new THREE.MeshStandardMaterial({ roughness:0.5, metalness:0.0,
+      emissive: k===3?0x0a3018:0x0a2230, emissiveIntensity:0.7 });
+    const im=new THREE.InstancedMesh(geoms[k],mat,CAP); im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    im.count=0; im.userData.k=k; const c0=new THREE.Color(); for(let i=0;i<CAP;i++)im.setColorAt(i,c0.setHSL(0.5,0.6,0.5));
+    scene.add(im); bodies.push(im); rIds.push(new Int32Array(CAP)); }
+
+  /* ---- žareče avreole (bioluminescenca, po liniji) ---- */
+  const glowGeo=new THREE.BufferGeometry();
+  const glowPos=new Float32Array(CAP*3),glowCol=new Float32Array(CAP*3),glowSize=new Float32Array(CAP);
+  glowGeo.setAttribute('position',new THREE.BufferAttribute(glowPos,3));
+  glowGeo.setAttribute('aColor',new THREE.BufferAttribute(glowCol,3));
+  glowGeo.setAttribute('aSize',new THREE.BufferAttribute(glowSize,1));
+  glowGeo.setDrawRange(0,0);
+  const glowMat=new THREE.ShaderMaterial({ uniforms:{uScale:{value:120.0}}, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+    vertexShader:'attribute float aSize;attribute vec3 aColor;varying vec3 vColor;uniform float uScale;void main(){vColor=aColor;vec4 mv=modelViewMatrix*vec4(position,1.0);gl_PointSize=aSize*(uScale/-mv.z);gl_Position=projectionMatrix*mv;}',
+    fragmentShader:'precision mediump float;varying vec3 vColor;void main(){float d=length(gl_PointCoord-vec2(0.5));float a=smoothstep(0.5,0.0,d);a=pow(a,1.7);gl_FragColor=vec4(vColor,a);}' });
+  scene.add(new THREE.Points(glowGeo,glowMat));
+
+  /* ---- rastlinska hrana ---- */
+  const FOODCAP=world.cur.cfg.foodCap; const foodGeo=new THREE.BufferGeometry();
+  const foodPos=new Float32Array(FOODCAP*3); foodGeo.setAttribute('position',new THREE.BufferAttribute(foodPos,3)); foodGeo.setDrawRange(0,0);
+  scene.add(new THREE.Points(foodGeo,new THREE.PointsMaterial({color:0x6affc0,size:0.14,transparent:true,opacity:0.8,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true})));
+
+  /* ---- trupla (mrhovina) ---- */
+  const CORPCAP=600; const corpGeo=new THREE.BufferGeometry();
+  const corpPos=new Float32Array(CORPCAP*3); corpGeo.setAttribute('position',new THREE.BufferAttribute(corpPos,3)); corpGeo.setDrawRange(0,0);
+  scene.add(new THREE.Points(corpGeo,new THREE.PointsMaterial({color:0xd98a6a,size:0.16,transparent:true,opacity:0.7,depthWrite:false,sizeAttenuation:true})));
+
+  /* ---- morski sneg ---- */
+  const SNOW=1400; const snowGeo=new THREE.BufferGeometry(); const snowPos=new Float32Array(SNOW*3);
+  for(let i=0;i<SNOW;i++){ snowPos[i*3]=(Math.random()-0.5)*(wW+8); snowPos[i*3+1]=(Math.random()-0.5)*(wH+6); snowPos[i*3+2]=(Math.random()-0.5)*(DEPTH*2+6); }
+  snowGeo.setAttribute('position',new THREE.BufferAttribute(snowPos,3));
+  scene.add(new THREE.Points(snowGeo,new THREE.PointsMaterial({color:0xbfe6ff,size:0.05,transparent:true,opacity:0.5,depthWrite:false})));
+
+  /* ---- svetlobni žarki ---- */
+  const rayMat=new THREE.MeshBasicMaterial({color:0x7fd3ff,transparent:true,opacity:0.04,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+  for(let i=0;i<5;i++){ const p=new THREE.Mesh(new THREE.PlaneGeometry(1.4,wH+8),rayMat); p.position.set((i-2)*3.4+(Math.random()-0.5)*2,2,(Math.random()-0.5)*DEPTH); p.rotation.z=0.12*(i-2); scene.add(p); }
+
+  /* ---- obroč izbranega ---- */
+  const ring=new THREE.Mesh(new THREE.RingGeometry(0.7,0.82,28),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.9,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+  ring.visible=false; scene.add(ring);
+
+  /* ---- učinki (meteor) ---- */
+  const fx=[];
+  function meteorFx(x,y){ const wx=(x-W0/2)*SCALE, wy=(H0/2-y)*SCALE;
+    const m=new THREE.Mesh(new THREE.SphereGeometry(0.4,16,16),new THREE.MeshBasicMaterial({color:0xffd27f,transparent:true,opacity:0.95,blending:THREE.AdditiveBlending,depthWrite:false}));
+    m.position.set(wx,wy,0); scene.add(m); fx.push({m:m,age:0,life:1.1}); }
+  function updateFx(dt){ for(let i=fx.length-1;i>=0;i--){ const e=fx[i]; e.age+=dt; const t=e.age/e.life;
+    e.m.scale.setScalar(1+t*14); e.m.material.opacity=0.95*(1-t); if(t>=1){ scene.remove(e.m); fx.splice(i,1); } } }
+
+  function hash01(n){ let x=Math.sin(n*127.1)*43758.5453; return x-Math.floor(x); }
+  function worldOf(a,t){ return { x:(a.x-W0/2)*SCALE, y:(H0/2-a.y)*SCALE + Math.sin(t*0.7+a.id*1.7)*0.25, z:(hash01(a.id)-0.5)*2*DEPTH }; }
+
+  const dummy=new THREE.Object3D(), col=new THREE.Color();
+  function roleColor(a,r,out){ const lum=0.42+Math.min(0.28,a.energy/260);
+    let hue=a.hue, sat=0.72;
+    if(r===1){ hue=a.hue*0.5+12; sat=0.9; } else if(r===2){ sat=0.26; } else if(r===3){ hue=a.hue*0.4+130; sat=0.72; }
+    return out.setHSL(((hue%360)+360)%360/360, sat, lum); }
+
+  function syncScene(t){
+    const A=world.cur.agents, n=Math.min(A.length,CAP); const counts=[0,0,0,0];
+    for(let i=0;i<n;i++){ const a=A[i]; const r=Sim.roleOf(a); const p=worldOf(a,t);
+      const idx=counts[r]++;
+      dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,r===3?0:-a.heading);
+      const s=0.32+a.size*0.5; dummy.scale.set(s,s,s); dummy.updateMatrix();
+      bodies[r].setMatrixAt(idx,dummy.matrix); bodies[r].setColorAt(idx,roleColor(a,r,col)); rIds[r][idx]=a.id;
+      glowPos[i*3]=p.x;glowPos[i*3+1]=p.y;glowPos[i*3+2]=p.z; col.setHSL((a.hue%360)/360,0.85,0.6);
+      const gi=0.4+a.signal*0.95; glowCol[i*3]=col.r*gi;glowCol[i*3+1]=col.g*gi;glowCol[i*3+2]=col.b*gi;
+      glowSize[i]=(1.0+a.size*1.15)*(0.6+a.signal*1.5);
     }
+    for(let k=0;k<4;k++){ bodies[k].count=counts[k]; bodies[k].instanceMatrix.needsUpdate=true; if(bodies[k].instanceColor)bodies[k].instanceColor.needsUpdate=true; }
+    glowGeo.setDrawRange(0,n); glowGeo.attributes.position.needsUpdate=true; glowGeo.attributes.aColor.needsUpdate=true; glowGeo.attributes.aSize.needsUpdate=true;
+    const F=world.cur.foods, fn=Math.min(F.length,FOODCAP);
+    for(let i=0;i<fn;i++){ foodPos[i*3]=(F[i].x-W0/2)*SCALE; foodPos[i*3+1]=(H0/2-F[i].y)*SCALE; foodPos[i*3+2]=(hash01(i*7.3+3.1)-0.5)*2*DEPTH; }
+    foodGeo.setDrawRange(0,fn); foodGeo.attributes.position.needsUpdate=true;
+    const CO=world.cur.corpses, cn=Math.min(CO.length,CORPCAP);
+    for(let i=0;i<cn;i++){ corpPos[i*3]=(CO[i].x-W0/2)*SCALE; corpPos[i*3+1]=(H0/2-CO[i].y)*SCALE; corpPos[i*3+2]=(hash01(i*3.7+1.9)-0.5)*2*DEPTH; }
+    corpGeo.setDrawRange(0,cn); corpGeo.attributes.position.needsUpdate=true;
+    const sa = selectedId!=null ? world.cur.agents.find(x=>x.id===selectedId) : null;
+    if(sa){ const p=worldOf(sa,t); ring.visible=true; ring.position.set(p.x,p.y,p.z); ring.scale.setScalar((0.32+sa.size*0.5)*3.4+1.2); ring.lookAt(camera.position); }
+    else ring.visible=false;
   }
-  function updateCard(a) {
-    const d = world.cur.inspect(a);
-    cardRefs.sw.style.color = 'hsl(' + (a.hue | 0) + ' 85% 62%)';
-    cardRefs.name.textContent = 'Bitje #' + a.id;
-    cardRefs.vel.textContent = a.size.toFixed(2);
-    cardRefs.en.textContent = a.energy.toFixed(0);
-    cardRefs.age.textContent = a.age.toFixed(0) + 's';
-    cardRefs.gen.textContent = a.gen;
-    IN_GROUPS.forEach((g, gi) => {
-      for (let s = 0; s < 3; s++) {
-        const iv = cardRefs.cells[gi * 3 + s], v = d.inp[g.idx[s]];
-        if (g.signed) { iv.style.opacity = Math.min(1, Math.abs(v)); iv.style.background = v >= 0 ? '#7fd3ff' : '#ff77c8'; }
-        else { iv.style.opacity = Math.min(1, Math.max(0, v)); iv.style.background = '#38e1c8'; }
-      }
-    });
-    setBar(cardRefs.sEn, (d.inp[12] + 0.5) / 1.5, false); cardRefs.sEn.v.textContent = a.energy.toFixed(0);
-    setBar(cardRefs.sSz, (d.inp[13] + 1) / 2, false);     cardRefs.sSz.v.textContent = a.size.toFixed(2);
-    setBar(cardRefs.sRt, d.inp[14], true);                cardRefs.sRt.v.textContent = d.inp[14].toFixed(2);
-    const turn = Math.tanh(d.out[0]); setBar(cardRefs.dTurn, turn, true);
-    cardRefs.dTurn.v.textContent = turn < -0.08 ? '‹ levo' : (turn > 0.08 ? 'desno ›' : 'naravnost');
-    const thr = 1 / (1 + Math.exp(-d.out[1])); setBar(cardRefs.dThr, thr, false); cardRefs.dThr.v.textContent = Math.round(thr * 100) + '%';
-    const emit = 1 / (1 + Math.exp(-d.out[2])); setBar(cardRefs.dEmit, emit, false); cardRefs.dEmit.v.textContent = Math.round(emit * 100) + '%';
+  function updateSnow(dt){ for(let i=0;i<SNOW;i++){ snowPos[i*3+1]-=dt*0.35; snowPos[i*3]+=Math.sin(performance.now()*0.0003+i)*dt*0.05; if(snowPos[i*3+1]<-(wH/2+3))snowPos[i*3+1]=wH/2+3; } snowGeo.attributes.position.needsUpdate=true; }
+
+  /* ---- kamera ---- */
+  let drag=false,px=0,py=0,downX=0,downY=0;
+  canvas.addEventListener('pointerdown',e=>{ drag=true;px=e.clientX;py=e.clientY;downX=e.clientX;downY=e.clientY;cam.auto=false; try{canvas.setPointerCapture(e.pointerId);}catch(_){} });
+  canvas.addEventListener('pointermove',e=>{ if(!drag)return; cam.theta-=(e.clientX-px)*0.008; cam.phi=Math.max(0.25,Math.min(1.6,cam.phi-(e.clientY-py)*0.006)); px=e.clientX;py=e.clientY; });
+  canvas.addEventListener('pointerup',e=>{ drag=false;
+    if(Math.hypot(e.clientX-downX,e.clientY-downY)>5)return;
+    const r=canvas.getBoundingClientRect(); const nx=((e.clientX-r.left)/r.width)*2-1, ny=-(((e.clientY-r.top)/r.height)*2-1);
+    const rc=new THREE.Raycaster(); rc.setFromCamera({x:nx,y:ny},camera); const hit=rc.intersectObjects(bodies);
+    if(hit.length){ const o=hit[0].object, id=hit[0].instanceId; if(id!=null && id<o.count){ selectedId=rIds[o.userData.k][id]; cam.auto=false; } }
+    else selectedId=null; });
+  canvas.addEventListener('wheel',e=>{ e.preventDefault(); cam.r=Math.max(10,Math.min(60,cam.r*(1+Math.sign(e.deltaY)*0.08))); },{passive:false});
+  function resize(){ const w=window.innerWidth,h=window.innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+  window.addEventListener('resize',resize);
+
+  /* ================= kronika + katastrofe ================= */
+  const chron=document.getElementById('chron'), toast=document.getElementById('toast');
+  const events=[]; let toastT=0;
+  function logEvent(msg,big){ const w=world.cur; events.unshift({t:w.time,msg:msg,big:big}); if(events.length>60)events.pop();
+    if(events.length===1)chron.innerHTML='';
+    const div=document.createElement('div'); div.className='ev'+(big?' big':''); div.innerHTML='<span class="t">'+w.time.toFixed(0)+'s</span><span class="m">'+msg+'</span>';
+    chron.insertBefore(div,chron.firstChild); while(chron.children.length>40)chron.removeChild(chron.lastChild);
+    toast.innerHTML=msg; toast.classList.add('show'); toastT=3.4; }
+  const seen={roles:[true,false,false,false],giant2:false,giant3:false,domHue:-1}; let peakPop=0, crashCD=0;
+  let eventFoodMult=1, eventUntil=0, nextEvent=42+Math.random()*28;
+  function detectEvents(dt){
+    const w=world.cur; if(w.time<2)return;
+    const rc=w.roleCounts();
+    if(!seen.roles[1] && rc[1]>0){ seen.roles[1]=true; logEvent('🦷 Pojavil se je prvi <b>plenilec</b> — začne se lov.',true); }
+    if(!seen.roles[2] && rc[2]>2){ seen.roles[2]=true; logEvent('🛡️ Evolvirali so <b>oklepniki</b> — obramba proti plenilcem.',false); }
+    if(!seen.roles[3] && rc[3]>2){ seen.roles[3]=true; logEvent('🌱 Pojavili so se <b>avtotrofi</b> — hranijo se s svetlobo pri gladini.',false); }
+    const ms=w.maxSizeNow();
+    if(!seen.giant2 && ms>=2.2){ seen.giant2=true; logEvent('🐟 Nastalo je veliko bitje (velikost '+ms.toFixed(1)+').',false); }
+    if(!seen.giant3 && ms>=3.1){ seen.giant3=true; logEvent('🐋 <b>Velikan!</b> Bitje je doseglo velikost '+ms.toFixed(1)+'.',true); }
+    const pop=w.agents.length; if(pop>peakPop)peakPop=pop;
+    if(crashCD>0)crashCD-=dt;
+    if(crashCD<=0 && peakPop>80 && pop<peakPop*0.5){ logEvent('💥 <b>Množično izumrtje</b> — populacija strmoglavila.',true); crashCD=20; peakPop=pop; }
+    // prevladujoča linija
+    if(w.hist.length){ const b=w.hist[w.hist.length-1].bins; let mi=0; for(let i=1;i<12;i++)if(b[i]>b[mi])mi=i;
+      if(pop>40 && b[mi]>pop*0.6 && seen.domHue!==mi){ seen.domHue=mi; logEvent('👑 Ena barvna linija zdaj prevladuje ('+Math.round(b[mi]/pop*100)+'%).',false); } }
+    // občasne katastrofe
+    if(eventUntil>0 && w.time>eventUntil){ eventUntil=0; eventFoodMult=1; }
+    if(tEvents.checked && w.time>nextEvent){ nextEvent=w.time+38+Math.random()*34;
+      const roll=Math.random();
+      if(roll<0.5){ doMeteor(); }
+      else if(roll<0.78){ eventFoodMult=0.15; eventUntil=w.time+13; logEvent('❄️ <b>Lakota</b> — hrane je nenadoma malo.',true); }
+      else { eventFoodMult=2.8; eventUntil=w.time+11; logEvent('🌸 <b>Cvetenje</b> — nenaden obilje hrane.',false); }
+    }
+    world.cur.cfg.foodSpawnPerSec = (+fr.value)*eventFoodMult;
   }
-  function positionPop(t) {
-    const a = selectedId != null ? world.cur.agents.find(x => x.id === selectedId) : null;
-    if (!a) { pop.classList.remove('show'); cardId = null; return; }
-    if (a.id !== cardId) buildCard(a);
-    updateCard(a);
-    const p = worldOf(a, t);
-    _pv.set(p.x, p.y, p.z).project(camera);
-    if (_pv.z > 1) { pop.classList.remove('show'); return; }
-    const bw = glbox.clientWidth, bh = glbox.clientHeight;
-    const sx = (_pv.x * 0.5 + 0.5) * bw, sy = (-_pv.y * 0.5 + 0.5) * bh;
-    const cw = pop.offsetWidth, ch = pop.offsetHeight;
-    let left = sx - cw / 2, top = sy - ch - 18;
-    if (top < 6) top = Math.min(bh - ch - 6, sy + 22);
-    left = Math.max(6, Math.min(bw - cw - 6, left));
-    pop.style.left = left + 'px'; pop.style.top = top + 'px';
-    pop.classList.add('show');
+  function doMeteor(){ const w=world.cur; const x=w.rng()*W0, y=w.rng()*H0; const n=w.strike(x,y,150); meteorFx(x,y);
+    logEvent('☄️ <b>Meteor!</b> Udaril je in pokončal '+n+' bitij.',true); if(selectedId!=null && !w.agents.some(a=>a.id===selectedId))selectedId=null; }
+
+  /* ================= gumbi ================= */
+  const $=id=>document.getElementById(id);
+  const menuBtn=$('menuBtn'), drawer=$('drawer');
+  function setMenu(o){ drawer.classList.toggle('open',o); menuBtn.classList.toggle('on',o); menuBtn.textContent=o?'✕':'☰'; }
+  menuBtn.onclick=()=>setMenu(!drawer.classList.contains('open'));
+  $('drawerClose').onclick=()=>setMenu(false);
+  const btnPause=$('btnPause');
+  btnPause.onclick=()=>{ paused=!paused; btnPause.textContent=paused?'▶ Nadaljuj':'⏸ Pavza'; };
+  const tPred=$('tPred'), tEvents=$('tEvents'), mr=$('mr'), fr=$('fr');
+  $('btnReset').onclick=()=>{ world.cur=Sim.createWorld({ mutRate:+mr.value, foodSpawnPerSec:+fr.value, predation:tPred.checked });
+    selectedId=null; cardId=null; pop.classList.remove('show'); events.length=0; chron.innerHTML='<div class="empty">Opazujem … prvi dogodki kmalu.</div>';
+    seen.roles=[true,false,false,false]; seen.giant2=seen.giant3=false; seen.domHue=-1; peakPop=0; eventFoodMult=1; eventUntil=0; nextEvent=42+Math.random()*28; };
+  $('btnMeteor').onclick=()=>doMeteor();
+  $('btnBloom').onclick=()=>{ eventFoodMult=2.8; eventUntil=world.cur.time+11; logEvent('🌸 <b>Cvetenje</b> — sprožil si obilje hrane.',false); };
+  document.querySelectorAll('#segSpeed button').forEach(b=>b.onclick=()=>{ speed=+b.dataset.speed; document.querySelectorAll('#segSpeed button').forEach(x=>x.classList.toggle('on',x===b)); });
+  mr.oninput=()=>{ $('mrv').textContent=(+mr.value).toFixed(2); world.cur.cfg.mutRate=+mr.value; };
+  fr.oninput=()=>{ $('frv').textContent=+fr.value; };
+  tPred.onchange=()=>{ world.cur.cfg.predation=tPred.checked; };
+
+  /* ---- graf / muller / niša ---- */
+  const gtx=$('graph').getContext('2d'),GV=$('graph');
+  function drawGraph(){ const h=world.cur.hist; gtx.clearRect(0,0,GV.width,GV.height); if(h.length<2)return;
+    let mp=10,mf=10,md=0.1; for(const p of h){ if(p.pop>mp)mp=p.pop; if(p.food>mf)mf=p.food; if(p.div>md)md=p.div; }
+    const X=i=>i/(h.length-1)*GV.width;
+    const line=(key,max,c,wd)=>{ gtx.strokeStyle=c;gtx.lineWidth=wd;gtx.beginPath(); h.forEach((p,i)=>{ const y=GV.height-(p[key]/max)*(GV.height-6)-3; i?gtx.lineTo(X(i),y):gtx.moveTo(X(i),y); }); gtx.stroke(); };
+    line('food',mf,'rgba(106,255,192,.6)',1); line('div',md,'#ff77c8',1.3); line('pop',mp,'#38e1c8',1.7); }
+  const mtx=$('muller').getContext('2d'),MV=$('muller');
+  function drawMuller(){ const h=world.cur.hist; mtx.clearRect(0,0,MV.width,MV.height); if(h.length<2)return; const X=i=>i/(h.length-1)*MV.width;
+    for(let i=1;i<h.length;i++){ const a=h[i-1],b=h[i]; const sa=a.bins.reduce((s,v)=>s+v,0)||1, sb=b.bins.reduce((s,v)=>s+v,0)||1; let ya=0,yb=0;
+      for(let k=0;k<12;k++){ const a0=ya,b0=yb; ya+=a.bins[k]/sa*MV.height; yb+=b.bins[k]/sb*MV.height; mtx.fillStyle='hsl('+(k*30)+' 68% 55%)';
+        mtx.beginPath(); mtx.moveTo(X(i-1),MV.height-a0); mtx.lineTo(X(i),MV.height-b0); mtx.lineTo(X(i),MV.height-yb); mtx.lineTo(X(i-1),MV.height-ya); mtx.closePath(); mtx.fill(); } } }
+  const ntx=$('niche').getContext('2d'),NV=$('niche');
+  function drawNiche(){ const A=world.cur.agents,C=world.cur.cfg; ntx.clearRect(0,0,NV.width,NV.height);
+    ntx.fillStyle='rgba(255,255,255,.03)'; ntx.fillRect(0,0,NV.width,NV.height);
+    for(const a of A){ const x=a.diet*(NV.width-8)+4; const y=NV.height-((a.size-C.minSize)/(C.maxSize-C.minSize))*(NV.height-8)-4;
+      const r=Sim.roleOf(a); ntx.fillStyle=ROLES[r].col; ntx.globalAlpha=0.65; ntx.beginPath(); ntx.arc(x,y,1.7+a.size*0.7,0,6.283); ntx.fill(); }
+    ntx.globalAlpha=1; }
+
+  /* ---- vloge + statistika ---- */
+  const roleGrid=$('roleGrid');
+  function updateRoles(){ const rc=world.cur.roleCounts();
+    roleGrid.innerHTML=ROLES.map((R,i)=>'<div class="rc"><span>'+R.icon+'</span><span class="rn">'+R.name+'</span><b style="color:'+R.col+'">'+rc[i]+'</b></div>').join(''); }
+  function updateStats(fps){ const w=world.cur;
+    $('sTime').textContent=w.time.toFixed(0)+'s'; $('sPop').textContent=w.agents.length; $('sGen').textContent=w.maxGen;
+    $('sDiv').textContent=w.lastDiv.toFixed(3); $('sFps').textContent=fps.toFixed(0);
+    const rc=w.roleCounts(); $('ov').textContent=w.agents.length+' bitij · '+ROLES.map((R,i)=>R.icon+rc[i]).join(' '); }
+
+  /* ================= lebdeči vpogled ================= */
+  const pop=$('pop'), card=$('card'); const _pv=new THREE.Vector3(); let cardId=null, cardRefs=null;
+  const IN_GROUPS=[ {label:'Hrana',idx:[0,1,2],signed:false},{label:'Sosed',idx:[3,4,5],signed:false},
+    {label:'Vel. soseda',idx:[6,7,8],signed:true},{label:'Signal',idx:[9,10,11],signed:false} ];
+  function barRow(label,id,signed){ return '<div class="brow"><span class="bl">'+label+'</span><span class="bar'+(signed?' signed':'')+'" id="'+id+'"><i></i></span><span class="val" id="'+id+'v"></span></div>'; }
+  function buildCard(a){ cardId=a.id;
+    let h='<div class="top"><span class="swatch" id="cSw"></span><span class="name" id="cName"></span><span class="x" id="cX">✕</span></div>';
+    h+='<span class="rolePill" id="cRole"></span>';
+    h+='<div class="chips"><span class="chip">velikost <b id="cVel"></b></span><span class="chip">energija <b id="cEn"></b></span><span class="chip">starost <b id="cAge"></b></span><span class="chip">rod <b id="cGen"></b></span></div>';
+    h+='<div class="sec">Telo — kdo je</div>';
+    h+=barRow('Prehrana','gDiet',false)+barRow('Oklep','gDef',false)+barRow('Fotosinteza','gPho',false);
+    h+='<div class="sec">Čutila — kaj vidi<span class="hdr3"><span>L</span><span>S</span><span>D</span></span></div>';
+    IN_GROUPS.forEach(g=>{ h+='<div class="brow"><span class="bl">'+g.label+'</span><span class="cells"><span class="cell"><i></i></span><span class="cell"><i></i></span><span class="cell"><i></i></span></span></div>'; });
+    h+='<div class="sec">Odločitev — kaj naredi</div>';
+    h+=barRow('Zavij','dTurn',true)+barRow('Pospeši','dThr',false)+barRow('Oddaj signal','dEmit',false);
+    card.innerHTML=h;
+    const ref=id=>{ const el=$(id); return {i:el.querySelector('i'),v:$(id+'v')}; };
+    cardRefs={ sw:$('cSw'),name:$('cName'),role:$('cRole'),vel:$('cVel'),en:$('cEn'),age:$('cAge'),gen:$('cGen'),
+      cells:Array.from(card.querySelectorAll('.cell')).map(c=>c.querySelector('i')),
+      gDiet:ref('gDiet'),gDef:ref('gDef'),gPho:ref('gPho'),
+      dTurn:ref('dTurn'),dThr:ref('dThr'),dEmit:ref('dEmit') };
+    $('cX').onclick=()=>{ selectedId=null; };
   }
+  function setBar(r,v,signed,c){ if(signed){ const w=Math.min(1,Math.abs(v))*50; r.i.style.left=(v>=0?50:50-w)+'%'; r.i.style.width=w+'%'; r.i.style.background=v>=0?'#7fd3ff':'#ff77c8'; }
+    else { r.i.style.left='0%'; r.i.style.width=Math.min(1,Math.max(0,v))*100+'%'; r.i.style.background=c||'#38e1c8'; } }
+  function updateCard(a){ const d=world.cur.inspect(a); const r=Sim.roleOf(a);
+    cardRefs.sw.style.color='hsl('+(a.hue|0)+' 85% 62%)'; cardRefs.name.textContent='Bitje #'+a.id;
+    cardRefs.role.textContent=ROLES[r].icon+' '+ROLES[r].name; cardRefs.role.style.background='rgba(255,255,255,.08)'; cardRefs.role.style.color=ROLES[r].col;
+    cardRefs.vel.textContent=a.size.toFixed(2); cardRefs.en.textContent=a.energy.toFixed(0); cardRefs.age.textContent=a.age.toFixed(0)+'s'; cardRefs.gen.textContent=a.gen;
+    setBar(cardRefs.gDiet,a.diet,false,'#ff8a6b'); cardRefs.gDiet.v.textContent=a.diet<0.4?'rastlin.':a.diet>0.6?'meso':'oboje';
+    setBar(cardRefs.gDef,a.defense,false,'#c8d2dc'); cardRefs.gDef.v.textContent=Math.round(a.defense*100)+'%';
+    setBar(cardRefs.gPho,a.photo,false,'#7be88a'); cardRefs.gPho.v.textContent=Math.round(a.photo*100)+'%';
+    IN_GROUPS.forEach((g,gi)=>{ for(let s=0;s<3;s++){ const iv=cardRefs.cells[gi*3+s],v=d.inp[g.idx[s]];
+      if(g.signed){ iv.style.opacity=Math.min(1,Math.abs(v)); iv.style.background=v>=0?'#7fd3ff':'#ff77c8'; } else { iv.style.opacity=Math.min(1,Math.max(0,v)); iv.style.background='#38e1c8'; } } });
+    const turn=Math.tanh(d.out[0]); setBar(cardRefs.dTurn,turn,true); cardRefs.dTurn.v.textContent=turn<-0.08?'‹ levo':(turn>0.08?'desno ›':'naravnost');
+    const thr=1/(1+Math.exp(-d.out[1])); setBar(cardRefs.dThr,thr,false); cardRefs.dThr.v.textContent=Math.round(thr*100)+'%';
+    const emit=1/(1+Math.exp(-d.out[2])); setBar(cardRefs.dEmit,emit,false,'#ff77c8'); cardRefs.dEmit.v.textContent=Math.round(emit*100)+'%'; }
+  function positionPop(t){ const a=selectedId!=null?world.cur.agents.find(x=>x.id===selectedId):null;
+    if(!a){ pop.classList.remove('show'); cardId=null; return; }
+    if(a.id!==cardId)buildCard(a); updateCard(a);
+    const p=worldOf(a,t); _pv.set(p.x,p.y,p.z).project(camera);
+    if(_pv.z>1){ pop.classList.remove('show'); return; }
+    const bw=glbox.clientWidth,bh=glbox.clientHeight; const sx=(_pv.x*0.5+0.5)*bw, sy=(-_pv.y*0.5+0.5)*bh;
+    const cw=pop.offsetWidth,ch=pop.offsetHeight; let left=sx-cw/2, top=sy-ch-18;
+    if(top<6)top=Math.min(bh-ch-6,sy+22); left=Math.max(6,Math.min(bw-cw-6,left));
+    pop.style.left=left+'px'; pop.style.top=top+'px'; pop.classList.add('show'); }
 
   /* ================= glavna zanka ================= */
-  const DT = 1/60;
-  let last = performance.now(), fps = 60, statAcc = 0;
+  const DT=1/60; let last=performance.now(),fps=60,statAcc=0;
   resize(); placeCamera();
-  function loop(now) {
-    const real = Math.min(0.05, (now - last) / 1000); last = now;
-    fps = fps*0.92 + (1/Math.max(real,1e-4))*0.08;
-    if (!paused) for (let i = 0; i < speed; i++) world.cur.step(DT);
-    const t = now * 0.001;
-    if (cam.auto) cam.theta += real * 0.05;
-    placeCamera();
-    syncScene(t); updateSnow(real); positionPop(t);
-    renderer.render(scene, camera);
-    statAcc += real;
-    if (statAcc > 0.25) {
-      statAcc = 0; updateStats(fps); drawGraph(); drawMuller(); drawNiche();
-    }
-    requestAnimationFrame(loop);
-  }
+  function loop(now){ const real=Math.min(0.05,(now-last)/1000); last=now; fps=fps*0.92+(1/Math.max(real,1e-4))*0.08;
+    if(!paused)for(let i=0;i<speed;i++){ world.cur.step(DT); detectEvents(DT); }
+    const t=now*0.001; if(cam.auto)cam.theta+=real*0.05; placeCamera();
+    syncScene(t); updateSnow(real); updateFx(real); positionPop(t);
+    if(toastT>0){ toastT-=real; if(toastT<=0)toast.classList.remove('show'); }
+    renderer.render(scene,camera);
+    statAcc+=real; if(statAcc>0.25){ statAcc=0; updateStats(fps); updateRoles(); drawGraph(); drawMuller(); drawNiche(); }
+    requestAnimationFrame(loop); }
   requestAnimationFrame(loop);
-
-  // razhroščevalna kljuka (za avtomatski posnetek)
-  window.__dbg = () => ({ pop: world.cur.agents.length, t: world.cur.time, gen: world.cur.maxGen });
+  window.__dbg=()=>({pop:world.cur.agents.length,t:world.cur.time,gen:world.cur.maxGen,roles:world.cur.roleCounts()});
 })();
 </script>
 <!--ARTIFACT-END-->

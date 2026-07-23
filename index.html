@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="sl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neuroevolucija — digitalna petrijevka</title>
+</head>
+<body>
+<!--ARTIFACT-START-->
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a30; --panel2:#0e1526; --ink:#e6ecff;
+    --muted:#8ea0c8; --line:#26304d; --accent:#5eead4; --warn:#f472b6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .wrap{display:flex;flex-wrap:wrap;gap:14px;padding:14px;align-items:flex-start;
+        max-width:1280px;margin:0 auto;}
+  .stage{flex:1 1 640px;min-width:320px;}
+  h1{font-size:17px;margin:0 0 4px;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:12.5px;margin:0 0 10px;line-height:1.5}
+  canvas#world{width:100%;height:auto;display:block;border-radius:12px;
+        background:#070b18;box-shadow:0 8px 30px rgba(0,0,0,.45);cursor:crosshair;}
+  .panel{flex:0 0 300px;min-width:280px;background:var(--panel);border-radius:12px;
+         padding:14px;box-shadow:0 8px 30px rgba(0,0,0,.35);}
+  .panel h2{font-size:12px;text-transform:uppercase;letter-spacing:.12em;
+            color:var(--muted);margin:2px 0 10px;font-weight:600}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+         border-radius:9px;padding:8px 11px;font-size:13px;cursor:pointer;flex:1 1 auto}
+  button:hover{border-color:var(--accent)}
+  button.on{border-color:var(--accent);color:var(--accent)}
+  label.ctrl{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+  label.ctrl b{color:var(--ink);font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .toggles{display:flex;gap:8px;margin-top:12px}
+  .toggles button{font-size:12px}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:13px;margin-top:4px}
+  .stats .k{color:var(--muted)}
+  .stats .v{text-align:right;font-variant-numeric:tabular-nums}
+  canvas.mini{width:100%;height:auto;border-radius:8px;background:var(--panel2);
+        border:1px solid var(--line);margin-top:6px;display:block}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+  .divider{height:1px;background:var(--line);margin:14px 0}
+  .brainwrap{margin-top:6px}
+  .empty{color:var(--muted);font-size:12.5px;padding:6px 0}
+  code{background:#0a1224;padding:1px 5px;border-radius:5px;color:var(--accent);font-size:12px}
+</style>
+
+<div class="wrap">
+  <div class="stage">
+    <h1>🧬 Neuroevolucija — digitalna petrijevka</h1>
+    <p class="sub">Vsako bitje ima majhne nevronske možgane. Nihče jih ne uči — kdor
+       najde hrano in preživi, se razmnoži z mutacijo. Barva se deduje, zato v živo
+       <b>vidiš nastajanje vrst</b>. Klikni bitje za vpogled v njegove možgane.</p>
+    <canvas id="world" width="900" height="600"></canvas>
+  </div>
+
+  <div class="panel">
+    <h2>Nadzor</h2>
+    <div class="row">
+      <button id="btnPause">⏸ Pavza</button>
+      <button id="btnReset">↻ Ponastavi</button>
+    </div>
+    <div class="row">
+      <button data-speed="1" class="spd on">1×</button>
+      <button data-speed="2" class="spd">2×</button>
+      <button data-speed="4" class="spd">4×</button>
+      <button data-speed="8" class="spd">8×</button>
+    </div>
+
+    <label class="ctrl">Stopnja mutacije: <b id="mrv">0.10</b></label>
+    <input type="range" id="mr" min="0" max="0.6" step="0.01" value="0.10">
+
+    <label class="ctrl">Obilje hrane: <b id="frv">70</b>/s</label>
+    <input type="range" id="fr" min="0" max="200" step="5" value="70">
+
+    <div class="toggles">
+      <button id="tPred" class="on" style="flex:1">🦈 Predacija</button>
+      <button id="tRepl" class="on" style="flex:1">🌱 Obnavljanje</button>
+    </div>
+
+    <div class="divider"></div>
+    <h2>Meritve</h2>
+    <div class="stats">
+      <div class="k">Čas</div><div class="v" id="sTime">0s</div>
+      <div class="k">Populacija</div><div class="v" id="sPop">0</div>
+      <div class="k">Hrana</div><div class="v" id="sFood">0</div>
+      <div class="k">Rodovi (globina)</div><div class="v" id="sGen">0</div>
+      <div class="k">Povpr. velikost</div><div class="v" id="sSize">0</div>
+      <div class="k">Št. barvnih linij</div><div class="v" id="sSpec">0</div>
+      <div class="k">FPS</div><div class="v" id="sFps">0</div>
+    </div>
+    <canvas id="graph" class="mini" width="280" height="90"></canvas>
+    <div class="hint">Zelena črta = populacija, medla = hrana.</div>
+
+    <div class="divider"></div>
+    <h2>Vpogled v bitje</h2>
+    <div id="inspector" class="brainwrap">
+      <div class="empty">Klikni bitje na platnu za prikaz njegovih možganov in čutil.</div>
+    </div>
+  </div>
+</div>
+
+<script id="engine">
+/*ENGINE-START*/
+(function (global) {
+  'use strict';
+
+  /* ---------- pomožne funkcije ---------- */
+  function makeRNG(seed) {              // mulberry32, ponovljiv
+    let s = seed >>> 0;
+    return function () {
+      s = (s + 0x6D2B79F5) | 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function clamp(x, a, b) { return x < a ? a : (x > b ? b : x); }
+  function gauss(rng) {                 // Box-Muller
+    let u = 0, v = 0;
+    while (u === 0) u = rng();
+    while (v === 0) v = rng();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+  function normAngle(a) {
+    while (a > Math.PI) a -= 2 * Math.PI;
+    while (a < -Math.PI) a += 2 * Math.PI;
+    return a;
+  }
+
+  /* ---------- nevronska mreža (genom bitja) ---------- */
+  const N_IN = 12, N_HID = 10, N_OUT = 2;
+  const OFF_W1 = 0;                      // [j*N_IN + i]  utezi vhod->skriti
+  const OFF_B1 = N_IN * N_HID;          // pragovi skritih
+  const OFF_W2 = OFF_B1 + N_HID;        // [k*N_HID + j] utezi skriti->izhod
+  const OFF_B2 = OFF_W2 + N_HID * N_OUT;// pragovi izhodov
+  const GENOME_LEN = OFF_B2 + N_OUT;
+
+  function randomGenome(rng) {
+    const g = new Float32Array(GENOME_LEN);
+    for (let i = 0; i < GENOME_LEN; i++) g[i] = gauss(rng) * 0.8;
+    return g;
+  }
+  function mutateGenome(g, rng, rate, size) {
+    const c = new Float32Array(g);
+    for (let i = 0; i < c.length; i++) if (rng() < rate) c[i] += gauss(rng) * size;
+    return c;
+  }
+  // skupni delovni medpomnilniki (enonitno, zaporedno)
+  const _hid = new Float32Array(N_HID), _out = new Float32Array(N_OUT);
+  function think(g, inp, out, hid) {
+    for (let j = 0; j < N_HID; j++) {
+      let s = g[OFF_B1 + j];
+      const base = j * N_IN;
+      for (let i = 0; i < N_IN; i++) s += g[base + i] * inp[i];
+      hid[j] = Math.tanh(s);
+    }
+    for (let k = 0; k < N_OUT; k++) {
+      let s = g[OFF_B2 + k];
+      const base = OFF_W2 + k * N_HID;
+      for (let j = 0; j < N_HID; j++) s += g[base + j] * hid[j];
+      out[k] = s;
+    }
+  }
+
+  /* ---------- izpeljane lastnosti iz velikosti ---------- */
+  function radiusOf(size)  { return 3 + size * 3.4; }
+  function visionOf(size)  { return 55 + size * 34; }
+  function maxSpeedOf(size){ return 105 / (0.6 + size * 0.55); }
+  function metabOf(size)   { return 0.45 * (0.4 + size); }
+  function reproThr(size)  { return 46 + size * 46; }
+  function lifespanOf(size){ return 95 + size * 30; }
+
+  /* ---------- prostorska mreza za sosede ---------- */
+  function buildGrid(items, cell) {
+    const g = new Map();
+    for (let k = 0; k < items.length; k++) {
+      const it = items[k];
+      const key = (Math.floor(it.x / cell)) + ',' + (Math.floor(it.y / cell));
+      let arr = g.get(key);
+      if (!arr) { arr = []; g.set(key, arr); }
+      arr.push(k);
+    }
+    return g;
+  }
+  function eachNeighbor(grid, cell, x, y, fn) {
+    const cx = Math.floor(x / cell), cy = Math.floor(y / cell);
+    for (let gx = cx - 1; gx <= cx + 1; gx++)
+      for (let gy = cy - 1; gy <= cy + 1; gy++) {
+        const arr = grid.get(gx + ',' + gy);
+        if (arr) for (let k = 0; k < arr.length; k++) fn(arr[k]);
+      }
+  }
+
+  const CELL = 150; // >= najvecje vidno polje
+
+  /* ---------- cutila -> vhodni vektor ---------- */
+  const VIS_HALF = 1.25;   // ~72°, polovica vidnega kota
+  const VIS_CENTER = 0.42; // sredinski sektor
+  function senseInto(w, a, ai, agentGrid, foodGrid, inp) {
+    for (let i = 0; i < N_IN; i++) inp[i] = 0;
+    const vis = visionOf(a.size);
+    // najblizja hrana in bitje po sektorjih: 0=levo,1=sredina,2=desno
+    const fBest = [0, 0, 0];
+    const aBest = [0, 0, 0], aRel = [0, 0, 0];
+    eachNeighbor(foodGrid, CELL, a.x, a.y, function (fi) {
+      const f = w.foods[fi];
+      const dx = f.x - a.x, dy = f.y - a.y;
+      const d = Math.hypot(dx, dy);
+      if (d > vis || d === 0) return;
+      const rel = normAngle(Math.atan2(dy, dx) - a.heading);
+      if (Math.abs(rel) > VIS_HALF) return;
+      const sec = Math.abs(rel) < VIS_CENTER ? 1 : (rel < 0 ? 0 : 2);
+      const prox = 1 - d / vis;
+      if (prox > fBest[sec]) fBest[sec] = prox;
+    });
+    eachNeighbor(agentGrid, CELL, a.x, a.y, function (oi) {
+      if (oi === ai) return;
+      const o = w.agents[oi];
+      const dx = o.x - a.x, dy = o.y - a.y;
+      const d = Math.hypot(dx, dy);
+      if (d > vis || d === 0) return;
+      const rel = normAngle(Math.atan2(dy, dx) - a.heading);
+      if (Math.abs(rel) > VIS_HALF) return;
+      const sec = Math.abs(rel) < VIS_CENTER ? 1 : (rel < 0 ? 0 : 2);
+      const prox = 1 - d / vis;
+      if (prox > aBest[sec]) {
+        aBest[sec] = prox;
+        aRel[sec] = Math.tanh((o.size - a.size) / a.size); // >0 = vecji (grozi)
+      }
+    });
+    inp[0] = fBest[0]; inp[1] = fBest[1]; inp[2] = fBest[2];
+    inp[3] = aBest[0]; inp[4] = aBest[1]; inp[5] = aBest[2];
+    inp[6] = aRel[0];  inp[7] = aRel[1];  inp[8] = aRel[2];
+    inp[9]  = clamp(a.energy / reproThr(a.size), 0, 1.5) - 0.5;
+    inp[10] = (a.size - w.cfg.minSize) / (w.cfg.maxSize - w.cfg.minSize) * 2 - 1;
+    inp[11] = Math.sin(a.age * 1.6);
+  }
+
+  /* ---------- svet ---------- */
+  let _nextId = 1;
+  function makeAgent(x, y, genome, size, hue, energy, gen, rng) {
+    return {
+      id: _nextId++, x: x, y: y, heading: rng() * 2 * Math.PI,
+      size: size, hue: hue, energy: energy, age: 0, gen: gen,
+      genome: genome, alive: true
+    };
+  }
+
+  function createWorld(opts) {
+    const cfg = Object.assign({
+      width: 900, height: 600, seed: (Math.random() * 1e9) | 0,
+      startAgents: 130, startFood: 300, foodCap: 520,
+      foodSpawnPerSec: 70, foodEnergy: 22,
+      mutRate: 0.10, mutSize: 0.35,
+      minSize: 0.4, maxSize: 3.4,
+      predation: true, replenish: true, replenishBelow: 14,
+      popCap: 520
+    }, opts || {});
+    const rng = makeRNG(cfg.seed);
+    const agents = [], foods = [];
+    for (let i = 0; i < cfg.startAgents; i++) {
+      const size = 0.7 + rng() * 0.45;
+      agents.push(makeAgent(rng() * cfg.width, rng() * cfg.height,
+        randomGenome(rng), size, rng() * 360, 60, 0, rng));
+    }
+    for (let i = 0; i < cfg.startFood; i++)
+      foods.push({ x: rng() * cfg.width, y: rng() * cfg.height });
+
+    const w = {
+      cfg: cfg, rng: rng, agents: agents, foods: foods,
+      time: 0, foodAcc: 0, maxGen: 0,
+      hist: [], histAcc: 0
+    };
+
+    w.step = function (dt) {
+      const A = w.agents, F = w.foods, C = w.cfg;
+      const agentGrid = buildGrid(A, CELL);
+      const foodGrid = buildGrid(F, CELL);
+      const inp = new Float32Array(N_IN);
+
+      // --- faza A: zaznaj, misli, premakni, presnovi ---
+      for (let i = 0; i < A.length; i++) {
+        const a = A[i];
+        senseInto(w, a, i, agentGrid, foodGrid, inp);
+        think(a.genome, inp, _out, _hid);
+        const turn = Math.tanh(_out[0]);
+        const thrust = 1 / (1 + Math.exp(-_out[1]));
+        a.heading = normAngle(a.heading + turn * 3.4 * dt);
+        const speed = thrust * maxSpeedOf(a.size);
+        a.x += Math.cos(a.heading) * speed * dt;
+        a.y += Math.sin(a.heading) * speed * dt;
+        if (a.x < 0) a.x += C.width; else if (a.x >= C.width) a.x -= C.width;
+        if (a.y < 0) a.y += C.height; else if (a.y >= C.height) a.y -= C.height;
+        const cost = (metabOf(a.size) + 0.02 * speed * (0.4 + a.size)) * dt;
+        a.energy -= cost;
+        a.age += dt;
+      }
+
+      // --- faza B: prehranjevanje, predacija, razmnozevanje, smrt ---
+      const grid2 = buildGrid(A, CELL);
+      const foodGrid2 = buildGrid(F, CELL);
+      const eatenFood = new Uint8Array(F.length);
+      const newborns = [];
+      const maxE = function (s) { return reproThr(s) * 1.7; };
+
+      for (let i = 0; i < A.length; i++) {
+        const a = A[i];
+        if (!a.alive) continue;
+        const ra = radiusOf(a.size);
+        // pojej hrano na dosegu
+        eachNeighbor(foodGrid2, CELL, a.x, a.y, function (fi) {
+          if (eatenFood[fi]) return;
+          const f = F[fi];
+          const d = Math.hypot(f.x - a.x, f.y - a.y);
+          if (d < ra + 4) { eatenFood[fi] = 1; a.energy += C.foodEnergy; }
+        });
+        if (a.energy > maxE(a.size)) a.energy = maxE(a.size);
+
+        // predacija: bistveno vecji poje manjsega
+        if (C.predation) {
+          eachNeighbor(grid2, CELL, a.x, a.y, function (oi) {
+            const o = A[oi];
+            if (!o.alive || oi === i) return;
+            if (a.size <= o.size * 1.25) return;
+            const d = Math.hypot(o.x - a.x, o.y - a.y);
+            if (d < ra + radiusOf(o.size)) {
+              a.energy = Math.min(maxE(a.size), a.energy + 10 + o.energy * 0.55);
+              o.alive = false;
+            }
+          });
+        }
+
+        // razmnozevanje
+        if (a.alive && a.energy >= reproThr(a.size) &&
+            A.length + newborns.length < C.popCap) {
+          const half = a.energy * 0.5;
+          a.energy = half;
+          let ns = a.size + (w.rng() < 0.6 ? gauss(w.rng) * 0.08 : 0);
+          ns = clamp(ns, C.minSize, C.maxSize);
+          const child = makeAgent(
+            a.x + (w.rng() - 0.5) * 12, a.y + (w.rng() - 0.5) * 12,
+            mutateGenome(a.genome, w.rng, C.mutRate, C.mutSize),
+            ns, (a.hue + gauss(w.rng) * 6 + 360) % 360,
+            half * 0.9, a.gen + 1, w.rng);
+          if (child.gen > w.maxGen) w.maxGen = child.gen;
+          newborns.push(child);
+        }
+
+        // smrt
+        if (a.energy <= 0 || a.age > lifespanOf(a.size)) a.alive = false;
+      }
+
+      // kompaktiraj bitja
+      let n = 0;
+      for (let i = 0; i < A.length; i++) if (A[i].alive) A[n++] = A[i];
+      A.length = n;
+      for (let i = 0; i < newborns.length; i++) A.push(newborns[i]);
+
+      // kompaktiraj hrano
+      let m = 0;
+      for (let i = 0; i < F.length; i++) if (!eatenFood[i]) F[m++] = F[i];
+      F.length = m;
+
+      // dodaj novo hrano
+      w.foodAcc += C.foodSpawnPerSec * dt;
+      while (w.foodAcc >= 1 && F.length < C.foodCap) {
+        F.push({ x: w.rng() * C.width, y: w.rng() * C.height });
+        w.foodAcc -= 1;
+      }
+
+      // obnavljanje "prapočela", da izumrtje ne konča predstave
+      if (C.replenish && A.length < C.replenishBelow) {
+        for (let i = 0; i < 6 && A.length < C.popCap; i++) {
+          const size = 0.7 + w.rng() * 0.45;
+          A.push(makeAgent(w.rng() * C.width, w.rng() * C.height,
+            randomGenome(w.rng), size, w.rng() * 360, 60, 0, w.rng));
+        }
+      }
+
+      w.time += dt;
+      // zgodovina za graf
+      w.histAcc += dt;
+      if (w.histAcc >= 0.5) {
+        w.histAcc = 0;
+        w.hist.push({ t: w.time, pop: A.length, food: F.length });
+        if (w.hist.length > 600) w.hist.shift();
+      }
+    };
+
+    // vpogled v bitje (za prikaz mozganov)
+    w.inspect = function (a) {
+      const agentGrid = buildGrid(w.agents, CELL);
+      const foodGrid = buildGrid(w.foods, CELL);
+      const inp = new Float32Array(N_IN);
+      const idx = w.agents.indexOf(a);
+      senseInto(w, a, idx, agentGrid, foodGrid, inp);
+      const out = new Float32Array(N_OUT), hid = new Float32Array(N_HID);
+      think(a.genome, inp, out, hid);
+      return { inp: Array.from(inp), hid: Array.from(hid), out: Array.from(out) };
+    };
+
+    // povzetek: st. razlicnih barvnih linij (grobo, po 30° kosih)
+    w.speciesCount = function () {
+      const b = new Uint8Array(12);
+      for (let i = 0; i < w.agents.length; i++)
+        b[Math.floor(w.agents[i].hue / 30) % 12] = 1;
+      let c = 0; for (let i = 0; i < 12; i++) c += b[i]; return c;
+    };
+    w.avgSize = function () {
+      if (!w.agents.length) return 0;
+      let s = 0; for (let i = 0; i < w.agents.length; i++) s += w.agents[i].size;
+      return s / w.agents.length;
+    };
+
+    return w;
+  }
+
+  const Sim = {
+    createWorld: createWorld, think: think,
+    radiusOf: radiusOf, visionOf: visionOf,
+    NN: { N_IN: N_IN, N_HID: N_HID, N_OUT: N_OUT }
+  };
+  global.Sim = Sim;
+  if (typeof module !== 'undefined' && module.exports) module.exports = Sim;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+/*ENGINE-END*/
+</script>
+
+<script>
+/* ---------- prikaz + uporabniski vmesnik (samo brskalnik) ---------- */
+(function () {
+  const Sim = globalThis.Sim;
+  const world = { cur: Sim.createWorld({}) };
+  let paused = false, speed = 1, selectedId = null;
+
+  const cv = document.getElementById('world'), ctx = cv.getContext('2d');
+  const gv = document.getElementById('graph'), gtx = gv.getContext('2d');
+
+  /* --- gumbi --- */
+  const btnPause = document.getElementById('btnPause');
+  btnPause.onclick = () => { paused = !paused; btnPause.textContent = paused ? '▶ Nadaljuj' : '⏸ Pavza'; };
+  document.getElementById('btnReset').onclick = () => {
+    world.cur = Sim.createWorld({
+      mutRate: +mr.value, foodSpawnPerSec: +fr.value,
+      predation: tPred.classList.contains('on'),
+      replenish: tRepl.classList.contains('on')
+    });
+    selectedId = null; renderInspector(null);
+  };
+  document.querySelectorAll('.spd').forEach(b => b.onclick = () => {
+    speed = +b.dataset.speed;
+    document.querySelectorAll('.spd').forEach(x => x.classList.toggle('on', x === b));
+  });
+
+  const mr = document.getElementById('mr'), mrv = document.getElementById('mrv');
+  mr.oninput = () => { mrv.textContent = (+mr.value).toFixed(2); world.cur.cfg.mutRate = +mr.value; };
+  const fr = document.getElementById('fr'), frv = document.getElementById('frv');
+  fr.oninput = () => { frv.textContent = +fr.value; world.cur.cfg.foodSpawnPerSec = +fr.value; };
+  const tPred = document.getElementById('tPred'), tRepl = document.getElementById('tRepl');
+  tPred.onclick = () => { tPred.classList.toggle('on'); world.cur.cfg.predation = tPred.classList.contains('on'); };
+  tRepl.onclick = () => { tRepl.classList.toggle('on'); world.cur.cfg.replenish = tRepl.classList.contains('on'); };
+
+  /* --- izbira bitja s klikom --- */
+  cv.addEventListener('click', (e) => {
+    const r = cv.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width * cv.width;
+    const y = (e.clientY - r.top) / r.height * cv.height;
+    let best = null, bd = 1e9;
+    for (const a of world.cur.agents) {
+      const d = Math.hypot(a.x - x, a.y - y);
+      if (d < bd) { bd = d; best = a; }
+    }
+    selectedId = (best && bd < 40) ? best.id : null;
+  });
+
+  /* --- risanje sveta --- */
+  function draw() {
+    const w = world.cur, C = w.cfg;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    // hrana
+    ctx.fillStyle = '#2f6b4a';
+    for (const f of w.foods) { ctx.beginPath(); ctx.arc(f.x, f.y, 2.1, 0, 6.283); ctx.fill(); }
+    // bitja
+    let sel = null;
+    for (const a of w.agents) {
+      if (a.id === selectedId) sel = a;
+      const r = Sim.radiusOf(a.size);
+      const light = 40 + Math.min(35, a.energy / 4);
+      ctx.fillStyle = `hsl(${a.hue|0} 72% ${light}%)`;
+      ctx.beginPath();
+      const hx = Math.cos(a.heading), hy = Math.sin(a.heading);
+      ctx.moveTo(a.x + hx * r * 1.7, a.y + hy * r * 1.7);
+      ctx.lineTo(a.x + Math.cos(a.heading + 2.5) * r, a.y + Math.sin(a.heading + 2.5) * r);
+      ctx.lineTo(a.x + Math.cos(a.heading - 2.5) * r, a.y + Math.sin(a.heading - 2.5) * r);
+      ctx.closePath(); ctx.fill();
+    }
+    // poudari izbranega + vidno polje
+    if (sel) {
+      const vis = Sim.visionOf(sel.size);
+      ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(sel.x, sel.y, Sim.radiusOf(sel.size) + 4, 0, 6.283); ctx.stroke();
+      ctx.strokeStyle = 'rgba(94,234,212,.25)'; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(sel.x, sel.y);
+      ctx.arc(sel.x, sel.y, vis, sel.heading - 1.25, sel.heading + 1.25);
+      ctx.closePath(); ctx.stroke();
+    } else if (selectedId !== null) { selectedId = null; }
+  }
+
+  /* --- graf populacije --- */
+  function drawGraph() {
+    const h = world.cur.hist;
+    gtx.clearRect(0, 0, gv.width, gv.height);
+    if (h.length < 2) return;
+    let maxV = 10;
+    for (const p of h) { if (p.pop > maxV) maxV = p.pop; if (p.food > maxV) maxV = p.food; }
+    const X = i => i / (h.length - 1) * gv.width;
+    const Y = v => gv.height - (v / maxV) * (gv.height - 6) - 3;
+    gtx.strokeStyle = 'rgba(142,160,200,.5)'; gtx.lineWidth = 1;
+    gtx.beginPath(); h.forEach((p, i) => { const y = Y(p.food); i ? gtx.lineTo(X(i), y) : gtx.moveTo(X(i), y); }); gtx.stroke();
+    gtx.strokeStyle = '#5eead4'; gtx.lineWidth = 1.6;
+    gtx.beginPath(); h.forEach((p, i) => { const y = Y(p.pop); i ? gtx.lineTo(X(i), y) : gtx.moveTo(X(i), y); }); gtx.stroke();
+  }
+
+  /* --- statistika --- */
+  const el = id => document.getElementById(id);
+  function updateStats(fps) {
+    const w = world.cur;
+    el('sTime').textContent = w.time.toFixed(0) + 's';
+    el('sPop').textContent = w.agents.length;
+    el('sFood').textContent = w.foods.length;
+    el('sGen').textContent = w.maxGen;
+    el('sSize').textContent = w.avgSize().toFixed(2);
+    el('sSpec').textContent = w.speciesCount();
+    el('sFps').textContent = fps.toFixed(0);
+  }
+
+  /* --- vpogled v mozgane izbranega bitja --- */
+  const insp = document.getElementById('inspector');
+  function renderInspector(a) {
+    if (!a) { insp.innerHTML = '<div class="empty">Klikni bitje na platnu za prikaz njegovih možganov in čutil.</div>'; return; }
+    const d = world.cur.inspect(a);
+    const N = Sim.NN;
+    const W = 268, H = 210, padx = 26;
+    const colX = [padx, W / 2, W - padx];
+    const ys = n => Array.from({ length: n }, (_, i) => 16 + i * (H - 32) / (n - 1 || 1));
+    const yIn = ys(N.N_IN), yHid = ys(N.N_HID), yOut = ys(N.N_OUT);
+    let s = `<canvas id="brain" width="${W}" height="${H}" class="mini" style="cursor:default"></canvas>`;
+    s += `<div class="stats" style="margin-top:8px">
+        <div class="k">Velikost</div><div class="v">${a.size.toFixed(2)}</div>
+        <div class="k">Energija</div><div class="v">${a.energy.toFixed(0)}</div>
+        <div class="k">Starost</div><div class="v">${a.age.toFixed(0)}s</div>
+        <div class="k">Rod</div><div class="v">${a.gen}</div>
+      </div>
+      <div class="hint">Modri robovi = pozitivna utež, rožnati = negativna.
+        Krogci svetijo po jakosti aktivacije. Levo = čutila, sredina = skriti nevroni,
+        desno = <code>zavij</code> in <code>pospeši</code>.</div>`;
+    insp.innerHTML = s;
+    const bc = document.getElementById('brain').getContext('2d');
+    // povezave
+    const g = a.genome;
+    function edge(x1, y1, x2, y2, wgt) {
+      const mag = Math.min(1, Math.abs(wgt) / 2.2);
+      bc.strokeStyle = wgt >= 0 ? `rgba(94,234,212,${0.12 + mag * 0.6})`
+                                : `rgba(244,114,182,${0.12 + mag * 0.6})`;
+      bc.lineWidth = 0.4 + mag * 1.8;
+      bc.beginPath(); bc.moveTo(x1, y1); bc.lineTo(x2, y2); bc.stroke();
+    }
+    for (let j = 0; j < N.N_HID; j++)
+      for (let i = 0; i < N.N_IN; i++)
+        edge(colX[0], yIn[i], colX[1], yHid[j], g[j * N.N_IN + i]);
+    const off2 = N.N_IN * N.N_HID + N.N_HID;
+    for (let k = 0; k < N.N_OUT; k++)
+      for (let j = 0; j < N.N_HID; j++)
+        edge(colX[1], yHid[j], colX[2], yOut[k], g[off2 + k * N.N_HID + j]);
+    function node(x, y, act, col) {
+      const a2 = Math.min(1, Math.abs(act));
+      bc.fillStyle = col; bc.globalAlpha = 0.25 + a2 * 0.75;
+      bc.beginPath(); bc.arc(x, y, 4.5, 0, 6.283); bc.fill(); bc.globalAlpha = 1;
+    }
+    for (let i = 0; i < N.N_IN; i++) node(colX[0], yIn[i], d.inp[i], '#a7b6e0');
+    for (let j = 0; j < N.N_HID; j++) node(colX[1], yHid[j], d.hid[j], '#c7d2fe');
+    node(colX[2], yOut[0], Math.tanh(d.out[0]), '#5eead4');
+    node(colX[2], yOut[1], 1 / (1 + Math.exp(-d.out[1])), '#5eead4');
+  }
+
+  /* --- glavna zanka --- */
+  const DT = 1 / 60;
+  let last = performance.now(), fps = 60, statAcc = 0;
+  function loop(now) {
+    const real = Math.min(0.05, (now - last) / 1000); last = now;
+    fps = fps * 0.92 + (1 / Math.max(real, 1e-4)) * 0.08;
+    if (!paused) for (let i = 0; i < speed; i++) world.cur.step(DT);
+    draw(); drawGraph();
+    statAcc += real;
+    if (statAcc > 0.25) {
+      statAcc = 0; updateStats(fps);
+      const sel = selectedId !== null ? world.cur.agents.find(a => a.id === selectedId) : null;
+      renderInspector(sel || null);
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+<!--ARTIFACT-END-->
+</body>
+</html>

@@ -416,19 +416,52 @@
   const sun=new THREE.DirectionalLight(0xbfefff,0.95); sun.position.set(2,12,4); scene.add(sun);
   const fill=new THREE.DirectionalLight(0x2255aa,0.5); fill.position.set(-4,-6,-3); scene.add(fill);
 
-  /* ---- telesa: 4 oblike po vlogi ---- */
-  const geoms = [
-    (()=>{ const g=new THREE.IcosahedronGeometry(0.5,1); g.scale(1.15,0.92,0.92); return g; })(),          // rastlinojed: okrogel
-    (()=>{ const g=new THREE.ConeGeometry(0.4,1.7,7); g.rotateZ(-Math.PI/2); return g; })(),                // plenilec: sulica
-    (()=>{ const g=new THREE.OctahedronGeometry(0.62,0); return g; })(),                                    // oklepnik: kristal
-    (()=>{ const g=new THREE.OctahedronGeometry(0.5,0); g.scale(0.55,1.6,0.55); return g; })()              // avtotrof: list
-  ];
+  /* ---- organska telesa: ribe (gibljivi) + meduze (avtotrofi) ---- */
+  function tintPart(geo,r,g,b){ geo=geo.index?geo.toNonIndexed():geo; const n=geo.attributes.position.count;
+    const c=new Float32Array(n*3); for(let i=0;i<n;i++){ c[i*3]=r;c[i*3+1]=g;c[i*3+2]=b; } geo.setAttribute('color',new THREE.BufferAttribute(c,3)); return geo; }
+  function shadeBody(geo){ geo=geo.index?geo.toNonIndexed():geo; const p=geo.attributes.position.array, n=geo.attributes.position.count;
+    let mn=1e9,mx=-1e9; for(let i=0;i<n;i++){ const y=p[i*3+1]; if(y<mn)mn=y; if(y>mx)mx=y; }
+    const c=new Float32Array(n*3); for(let i=0;i<n;i++){ const tt=(p[i*3+1]-mn)/(mx-mn||1), sh=1.14-tt*0.52; c[i*3]=sh;c[i*3+1]=sh;c[i*3+2]=sh; }
+    geo.setAttribute('color',new THREE.BufferAttribute(c,3)); return geo; }
+  function mergeParts(parts){ let n=0; for(const g of parts)n+=g.attributes.position.count;
+    const pos=new Float32Array(n*3),nor=new Float32Array(n*3),col=new Float32Array(n*3); let o=0;
+    for(const g of parts){ const c=g.attributes.position.count; pos.set(g.attributes.position.array,o*3); nor.set(g.attributes.normal.array,o*3); col.set(g.attributes.color.array,o*3); o+=c; }
+    const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    geo.setAttribute('normal',new THREE.BufferAttribute(nor,3)); geo.setAttribute('color',new THREE.BufferAttribute(col,3)); return geo; }
+  // riba: telo + rep + hrbtna plavut + prsni plavuti + 2 očesi (uporabi VRNJENE geometrije)
+  function makeFish(){
+    const bg=new THREE.IcosahedronGeometry(0.44,3); bg.scale(1.7,0.94,0.6);
+    const tg=new THREE.ConeGeometry(0.46,0.62,3); tg.scale(1,1,0.12); tg.rotateZ(Math.PI/2); tg.translate(-1.02,0,0);
+    const dg=new THREE.ConeGeometry(0.28,0.52,3); dg.scale(0.5,1,0.09); dg.translate(0.02,0.52,0);
+    const plg=new THREE.ConeGeometry(0.2,0.42,3); plg.scale(0.5,1,0.08); plg.rotateX(-0.5); plg.rotateZ(-0.6); plg.translate(0.25,-0.18,0.26);
+    const prg=new THREE.ConeGeometry(0.2,0.42,3); prg.scale(0.5,1,0.08); prg.rotateX(0.5); prg.rotateZ(-0.6); prg.translate(0.25,-0.18,-0.26);
+    const elg=new THREE.SphereGeometry(0.1,10,10); elg.translate(0.62,0.15,0.24);
+    const erg=new THREE.SphereGeometry(0.1,10,10); erg.translate(0.62,0.15,-0.24);
+    return mergeParts([ shadeBody(bg), tintPart(tg,0.86,0.9,1), tintPart(dg,0.82,0.88,1),
+      tintPart(plg,0.86,0.9,1), tintPart(prg,0.86,0.9,1), tintPart(elg,0.03,0.03,0.05), tintPart(erg,0.03,0.03,0.05) ]);
+  }
+  function makeJelly(){ const dome=new THREE.SphereGeometry(0.62,18,12,0,Math.PI*2,0,Math.PI*0.62); dome.scale(1,0.85,1); return tintPart(dome,1,1,1); }
+
+  const fishGeo=makeFish(), jellyGeo=makeJelly();
+  const fPhase=new Float32Array(CAP), fFreq=new Float32Array(CAP), fAmp=new Float32Array(CAP);
+  fishGeo.setAttribute('aPhase',new THREE.InstancedBufferAttribute(fPhase,1));
+  fishGeo.setAttribute('aFreq', new THREE.InstancedBufferAttribute(fFreq,1));
+  fishGeo.setAttribute('aAmp',  new THREE.InstancedBufferAttribute(fAmp,1));
+  // material z valovanjem repa (deformacija v vertex shaderju)
+  const fishMat=new THREE.MeshStandardMaterial({ vertexColors:true, roughness:0.42, metalness:0.05, emissive:0x0a2230, emissiveIntensity:0.32 });
+  fishMat.onBeforeCompile=(sh)=>{ sh.uniforms.uTime={value:0};
+    sh.vertexShader='uniform float uTime;\nattribute float aPhase;\nattribute float aFreq;\nattribute float aAmp;\n'+sh.vertexShader;
+    sh.vertexShader=sh.vertexShader.replace('#include <begin_vertex>',
+      '#include <begin_vertex>\n float _ax=position.x;\n float _w=sin(uTime*aFreq+aPhase-_ax*3.6);\n'+
+      ' transformed.z+=_w*aAmp*clamp(0.55-_ax*0.62,0.0,1.3);\n transformed.y+=cos(uTime*aFreq*0.5+aPhase)*aAmp*0.12;');
+    fishMat.userData.sh=sh; };
+  const jellyMat=new THREE.MeshStandardMaterial({ vertexColors:true, roughness:0.3, metalness:0.0, emissive:0x123a24, emissiveIntensity:0.55, transparent:true, opacity:0.7 });
+
   const bodies=[], rIds=[];
-  for(let k=0;k<4;k++){ const mat=new THREE.MeshStandardMaterial({ roughness:0.5, metalness:0.0,
-      emissive: k===3?0x0a3018:0x0a2230, emissiveIntensity:0.7 });
-    const im=new THREE.InstancedMesh(geoms[k],mat,CAP); im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    im.count=0; im.userData.k=k; const c0=new THREE.Color(); for(let i=0;i<CAP;i++)im.setColorAt(i,c0.setHSL(0.5,0.6,0.5));
-    scene.add(im); bodies.push(im); rIds.push(new Int32Array(CAP)); }
+  (function(){ const im=new THREE.InstancedMesh(fishGeo,fishMat,CAP); im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    im.count=0; im.userData.k=0; const c0=new THREE.Color(); for(let i=0;i<CAP;i++)im.setColorAt(i,c0.setHSL(0.5,0.6,0.5)); scene.add(im); bodies.push(im); rIds.push(new Int32Array(CAP)); })();
+  (function(){ const im=new THREE.InstancedMesh(jellyGeo,jellyMat,CAP); im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    im.count=0; im.userData.k=1; const c0=new THREE.Color(); for(let i=0;i<CAP;i++)im.setColorAt(i,c0.setHSL(0.35,0.6,0.5)); scene.add(im); bodies.push(im); rIds.push(new Int32Array(CAP)); })();
 
   /* ---- žareče avreole (bioluminescenca, po liniji) ---- */
   const glowGeo=new THREE.BufferGeometry();
@@ -484,17 +517,31 @@
     return out.setHSL(((hue%360)+360)%360/360, sat, lum); }
 
   function syncScene(t){
-    const A=world.cur.agents, n=Math.min(A.length,CAP); const counts=[0,0,0,0];
+    const A=world.cur.agents, n=Math.min(A.length,CAP); let cf=0,cj=0;
     for(let i=0;i<n;i++){ const a=A[i]; const r=Sim.roleOf(a); const p=worldOf(a,t);
-      const idx=counts[r]++;
-      dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,r===3?0:-a.heading);
-      const s=0.32+a.size*0.5; dummy.scale.set(s,s,s); dummy.updateMatrix();
-      bodies[r].setMatrixAt(idx,dummy.matrix); bodies[r].setColorAt(idx,roleColor(a,r,col)); rIds[r][idx]=a.id;
+      if(r===3){ // meduza (avtotrof) — utripa in lebdi
+        const idx=cj++; const s=0.42+a.size*0.5; const pulse=1+Math.sin(t*2.2+a.id)*0.16;
+        dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,0); dummy.scale.set(s,s*pulse,s); dummy.updateMatrix();
+        bodies[1].setMatrixAt(idx,dummy.matrix); bodies[1].setColorAt(idx,roleColor(a,r,col)); rIds[1][idx]=a.id;
+      } else { // riba
+        const idx=cf++; const base=0.3+a.size*0.46;
+        let sx=base,sy=base,sz=base;
+        if(r===1){ sx=base*1.28; sy=base*0.82; sz=base*0.72; }      // plenilec: dolg, vitek
+        else if(r===2){ sx=base*0.96; sy=base*1.14; sz=base*1.06; } // oklepnik: čokat
+        else { sx=base*1.04; sy=base*1.0; sz=base*0.86; }           // rastlinojed
+        dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,-a.heading); dummy.scale.set(sx,sy,sz); dummy.updateMatrix();
+        bodies[0].setMatrixAt(idx,dummy.matrix); bodies[0].setColorAt(idx,roleColor(a,r,col)); rIds[0][idx]=a.id;
+        fPhase[idx]=a.id*1.7; fFreq[idx]=(r===1?11.5:7.5)+a.signal*2.5; fAmp[idx]=(r===1?0.17:0.12);
+      }
       glowPos[i*3]=p.x;glowPos[i*3+1]=p.y;glowPos[i*3+2]=p.z; col.setHSL((a.hue%360)/360,0.85,0.6);
-      const gi=0.4+a.signal*0.95; glowCol[i*3]=col.r*gi;glowCol[i*3+1]=col.g*gi;glowCol[i*3+2]=col.b*gi;
-      glowSize[i]=(1.0+a.size*1.15)*(0.6+a.signal*1.5);
+      const gi=0.3+a.signal*0.8; glowCol[i*3]=col.r*gi;glowCol[i*3+1]=col.g*gi;glowCol[i*3+2]=col.b*gi;
+      glowSize[i]=(0.8+a.size*0.9)*(0.55+a.signal*1.4);
     }
-    for(let k=0;k<4;k++){ bodies[k].count=counts[k]; bodies[k].instanceMatrix.needsUpdate=true; if(bodies[k].instanceColor)bodies[k].instanceColor.needsUpdate=true; }
+    bodies[0].count=cf; bodies[1].count=cj;
+    bodies[0].instanceMatrix.needsUpdate=true; if(bodies[0].instanceColor)bodies[0].instanceColor.needsUpdate=true;
+    bodies[1].instanceMatrix.needsUpdate=true; if(bodies[1].instanceColor)bodies[1].instanceColor.needsUpdate=true;
+    fishGeo.attributes.aPhase.needsUpdate=true; fishGeo.attributes.aFreq.needsUpdate=true; fishGeo.attributes.aAmp.needsUpdate=true;
+    if(fishMat.userData.sh) fishMat.userData.sh.uniforms.uTime.value=t;
     glowGeo.setDrawRange(0,n); glowGeo.attributes.position.needsUpdate=true; glowGeo.attributes.aColor.needsUpdate=true; glowGeo.attributes.aSize.needsUpdate=true;
     const F=world.cur.foods, fn=Math.min(F.length,FOODCAP);
     for(let i=0;i<fn;i++){ foodPos[i*3]=(F[i].x-W0/2)*SCALE; foodPos[i*3+1]=(H0/2-F[i].y)*SCALE; foodPos[i*3+2]=(hash01(i*7.3+3.1)-0.5)*2*DEPTH; }

@@ -323,7 +323,7 @@ The "≈ € na dan" figures are 1,6 € (Basic), 3,0 € (Plus) and 5,0 € (Pr
 | **Sites+ Plus** | ≈ 3.279 € |
 | **Sites+ Pro** | ≈ 5.439 € |
 
-- **Basic** is ~70–150% pricier than local low-end subscriptions but ~30% cheaper than a typical agency build plus maintenance.
+- **Basic** is ~30–150% pricier than local low-end subscriptions (+28–70% vs. web123, +75% vs. Spletna soseska, +149% vs. REB) but ~30% cheaper than a typical agency build plus maintenance.
 - **Plus** costs about the same as Multimedija Poslovna plus maintenance over 3 years.
 - **Pro** is premium. It is only justifiable through the recurring services (6 changes/month, Google-profile care, monthly improvement, booking) and measurable results.
 
@@ -469,7 +469,7 @@ Prices below were fetched on 31.10.2026 through a US-located connection. They ar
   - Multilingual sites are standard (83%).
   - Sites+ currently has no accommodation chip and charges +19 €/mes. per extra language. A dedicated "Apartma/sobe" package with SL/EN/DE included and a booking-engine link would fit the data. The I55 statistics cover larger firms, so this is an extrapolation to small sobodajalci.
 - **Saloni, frizerji, wellness and zdravstvene storitve** and **avtoservisi** are booking-driven. The Sites+ ROI math (average bill 40 € and 150 €) makes payback after 1–4 new clients a month plausible. They fit Plus/Pro well. This is not backed by Slovenian conversion data.
-- **Bari/kavarne** have low average bills (12 € default), so payback needs ~4–7 new guests/month at Basic/Plus. They likely convert best at Basic or with menu-editing as the hook rather than a feature-heavy Plus.
+- **Bari/kavarne** have low average bills (12 € default), so payback needs ~4–8 new guests/month at Basic/Plus (49 € ÷ 12 € ≈ 4; 89 € ÷ 12 € ≈ 7–8; simple fee ÷ bill, ignoring margins; the site's exact formula was not reverse-engineered). They likely convert best at Basic or with menu-editing as the hook rather than a feature-heavy Plus.
 - **Obrtniki** have high ticket sizes (300 € default). Even Basic pays back with one job a month. Lead-capture (quote form, "pokličite me") and the Google profile matter more than visual effects.
 - **Pitch message.** The skills gap (56%) and the perception that digitalisation is non-essential (57% of small firms) imply the pitch should be "nič vam ni treba znati / urediti" plus concrete revenue math, not technology.
 - **Društva** are a weak paying segment: excluded from SPS vouchers and typically low-budget. They could be served by a cheaper no-frills tier or as portfolio/reference projects.

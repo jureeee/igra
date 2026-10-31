@@ -64,7 +64,7 @@ Vercel's own Platforms docs (updated Sept 2026) recommend the **multi-tenant pat
 - **Supabase:** a single shared Supabase Pro project with RLS is far cheaper than one Supabase project per client. Each extra project consumes its own compute (the $10 credit covers only one Micro instance), and free projects pause after a week, which makes them unsuitable for production client sites. Supabase has EU regions (e.g. Frankfurt); this was not re-verified in this session.
 
 ### Gaps
-- I did not verify the exact current Next.js major version. Vercel's docs use the `proxy.ts` convention, which replaced `middleware.ts` in Next.js 16.
+- I did not verify the exact current Next.js major version. Vercel's docs use the `proxy.ts` convention. From prior knowledge, not re-verified this session, this replaced `middleware.ts` in Next.js 16 (Oct 2025).
 - I did not read the Platforms Starter Kit repo's current stack (tenant store, Next.js version) directly in 2026.
 - Pricing for on-demand concurrent builds (Pro "up to 500") was not checked.
 - I did not verify whether Vercel's registrar can buy `.si` domains. Most Slovenian SMB domains are held at local registrars, so assume external DNS.
@@ -147,7 +147,7 @@ Token costs are negligible. With October 2026 prices (Claude Sonnet 5.5 at $2/$1
   - Gemini 3 Pro Image $0.134 at 1K/2K and $0.24 at 4K.
   - Batch is 50% off. Paid-tier data is "not used to improve products"; free-tier data is. — [Gemini API pricing](https://ai.google.dev/gemini-api/docs/pricing)
 - **Slovenian language quality evidence:**
-  - A March 2026 paper on GaMS3-12B (University of Ljubljana, a Slovene-adapted model) reports it "performs comparably to much larger commercial GPT-4o in the Slovene LLM arena", with a >60% win rate against its base model. — [arXiv 2603.01691](https://arxiv.org/html/2603.01691v1)
+  - A March 2026 paper on GaMS3-12B (University of Ljubljana, a Slovene-adapted model) reports it outperforms Gemma 3 12B and "performs comparably to much larger commercial GPT-4o in the Slovene LLM arena", citing "a win rate of over 60%". The excerpt does not make clear which comparison that win rate refers to. — [arXiv 2603.01691](https://arxiv.org/html/2603.01691v1)
   - On the older SloBench English→Slovene leaderboard, DeepL ranked first, with gemini-1.5-pro, Claude Sonnet 3.5 and GPT-4o close behind. These are older models.
   - **No head-to-head Slovene benchmark of current Claude/GPT/Gemini versions was found.** — [Search summary of SloBench / GaMS sources](https://huggingface.co/papers/2603.01691)
 - **Stock photo licensing (Unsplash API):** apps must credit Unsplash and the photographer with a link, hotlink images via the API-returned URLs, and call `download_location` on download-like actions. The base Unsplash License itself doesn't require attribution. — [Unsplash API Guidelines: Attribution](https://help.unsplash.com/api-guidelines/guideline-attribution); [Hotlinking](https://help.unsplash.com/api-guidelines/guideline-hotlinking-images)
